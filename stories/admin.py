@@ -3,7 +3,7 @@ from unfold.admin import ModelAdmin
 import admin_thumbnails
 
 from stories.models import (
-    Category,Brand,Product, Images,Color,Size,Variants,Slider,Banner,Future,Review
+    Category,Brand,Product, Images,Color,Size,Variants,Slider,Banner,ProductFuture,Review
 )
 # Register your models here.
 class CategoryAdmin(ModelAdmin):
@@ -97,12 +97,12 @@ class BannerAdmin(ModelAdmin):
     readonly_fields = ['id', 'image_tag', 'created_date', 'updated_date']
 admin.site.register(Banner, BannerAdmin)
 
-class FutureAdmin(ModelAdmin):
+class ProductFutureAdmin(ModelAdmin):
     list_display = ['id', 'product', 'title', 'hard_disk', 'cpu', 'ram', 'os', 'special_feature',  'graphic',  'status', 'created_date', 'updated_date']
     readonly_fields = ['id', 'created_date', 'updated_date']
     search_fields = ['title', 'hard_disk', 'cpu', 'ram', 'os', 'special_feature',  'graphic']
     list_filter = ['product', 'status', 'created_date', 'updated_date']
-admin.site.register(Future, FutureAdmin)
+admin.site.register(ProductFuture, ProductFutureAdmin)
 
 class ReviewAdmin(ModelAdmin):
     list_display = ['id', 'product', 'user', 'subject','comment', 'rate', 'status','created_date', 'updated_date']

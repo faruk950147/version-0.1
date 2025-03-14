@@ -11,7 +11,7 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponse, HttpRe
 from django.db.models import Min, Max
 import json
 from stories.models import (
-    Category,Brand,Product, Images,Color,Size,Variants,Slider,Banner,Future,Review
+    Category,Brand,Product, Images,Color,Size,Variants,Slider,Banner,ProductFuture,Review
 )
 # from cart.forms import CartForm
 #import store models
