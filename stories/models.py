@@ -1,58 +1,50 @@
 from django.db import models
-from django.forms import ValidationError
 from django.utils.html import mark_safe
 from django.utils.text import slugify
 from django.contrib.auth import get_user_model
-import uuid
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
-from django.db.models import Avg, Count
-User = get_user_model()
+from django.db.models import Avg
 
+User = get_user_model()
 
 
 class Category(models.Model):
     parent = models.ForeignKey('self', related_name='children', on_delete=models.CASCADE, null=True, blank=True)
-    title = models.CharField(max_length=150, unique=True, null=False, blank=False)
-    keyword = models.CharField(max_length=150, null=True, blank=True)  # Removed unique constraint
-    description = models.CharField(max_length=150, null=True, blank=True)  # Removed unique constraint
-    image = models.ImageField(upload_to='category', null=True, blank=True)
+    title = models.CharField(max_length=150, unique=True)
+    keyword = models.CharField(max_length=150, null=True, blank=True)
+    description = models.CharField(max_length=150, null=True, blank=True)
+    image = models.ImageField(upload_to='categories/%Y/%m/%d/', null=True, blank=True)
     status = models.BooleanField(default=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['-id']
         verbose_name_plural = '01. Categories'
-        
+
     @property
-    def image_tag(self):   
-        if self.image:
-            return mark_safe('<img src="%s" width="50" height="50"/>' % (self.image.url))
-         # You could add a fallback image URL here if needed
-        return mark_safe('<span>No Image</span>') 
+    def image_tag(self):
+        return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>' if self.image else '<span>No Image</span>')
 
     def __str__(self):
         return f'{self.title} - {"Active" if self.status else "Inactive"}'
-    
+
 class Brand(models.Model):
-    title = models.CharField(max_length=150, unique=True, null=False, blank=False)
-    keyword = models.CharField(max_length=150, null=True, blank=True)  # Removed unique constraint
-    description = models.CharField(max_length=150, null=True, blank=True)  # Removed unique constraint
-    image = models.ImageField(upload_to='brand', null=True, blank=True)
+    title = models.CharField(max_length=150, unique=True)
+    keyword = models.CharField(max_length=150, null=True, blank=True)
+    description = models.CharField(max_length=150, null=True, blank=True)
+    image = models.ImageField(upload_to='brands/%Y/%m/%d/', null=True, blank=True)
     status = models.BooleanField(default=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['-id']
         verbose_name_plural = '02. Brands'
-        
+
     @property
-    def image_tag(self):   
-        if self.image:
-            return mark_safe('<img src="%s" width="50" height="50"/>' % (self.image.url))
-        return mark_safe('<span>No Image</span>') 
+    def image_tag(self):
+        return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>' if self.image else '<span>No Image</span>')
 
     def __str__(self):
         return f'{self.title} - {"Active" if self.status else "Inactive"}'
@@ -64,8 +56,8 @@ class Product(models.Model):
     model = models.CharField(max_length=150, null=True, blank=True)
     available_in_stock_msg = models.CharField(max_length=150, null=True, blank=True)
     in_stock_max = models.PositiveIntegerField(default=1)
-    price = models.PositiveIntegerField(default=0)
-    old_price = models.PositiveIntegerField(default=0)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    old_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     discount_title = models.CharField(max_length=150, null=True, blank=True)
     discount = models.PositiveIntegerField(default=0)
     # Time of the off_time field
@@ -74,7 +66,7 @@ class Product(models.Model):
     description = models.TextField(default='N/A')
     addition_des = models.TextField(default='N/A')
     return_policy = models.TextField(default='N/A')
-    is_active = models.BooleanField(default=False)
+    is_timeline = models.BooleanField(default=False)
     deals = models.BooleanField(default=False)
     new_collection = models.BooleanField(default=False)
     latest_collection = models.BooleanField(default=False)
@@ -101,13 +93,6 @@ class Product(models.Model):
         if self.offers_deadline:
             return (self.offers_deadline - timezone.now()).total_seconds()
         return None
-
-    def discount_price(self):
-        if self.discount:
-            discount_price = self.price - ((self.discount / 100) * self.price)
-            return max(discount_price, 0)
-        else:
-            return self.price
         
     @property    
     def avaregereview(self):
@@ -120,38 +105,34 @@ class Product(models.Model):
     
     def __str__(self):
         return f'{self.title} - {"Active" if self.status else "Inactive"}'
-    
+
 class Images(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products_images')
-    title = models.CharField(max_length=50, null=True, blank=True)
-    image = models.ImageField(upload_to='images', null=True, blank=True)
+    image = models.ImageField(upload_to='product_images/%Y/%m/%d/', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['-id']
         verbose_name_plural = '04. Images'
-        
+
     @property
-    def image_tag(self):   
-        if self.image:
-            return mark_safe('<img src="%s" width="50" height="50" />' % (self.image.url))
-        else:
-            return mark_safe('<span>No Image</span>') 
-    
+    def image_tag(self):
+        return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>' if self.image else '<span>No Image</span>')
+
     def __str__(self):
-        return f'{self.product.title}, {self.product.title}'
-    
+        return self.product.title
+
 class Color(models.Model):
-    title = models.CharField(max_length=20)
-    code = models.CharField(max_length=10, blank=True,null=True)
+    title = models.CharField(max_length=20, unique=True, null=False, blank=False)
+    code = models.CharField(max_length=20, unique=True, null=False, blank=False)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['-id']
-        verbose_name_plural = '05.Products Colors'
-        
+        verbose_name_plural = '05. Product Colors'
+    
     @property
     def color_tag(self):
         if self.code:
@@ -160,61 +141,49 @@ class Color(models.Model):
             return ""
 
     def __str__(self):
-        return f'{self.title} x {self.code}'
+        return f'{self.title} ({self.code})' if self.code else self.title
 
 class Size(models.Model):
-    title = models.CharField(max_length=20)
-    code = models.CharField(max_length=10, blank=True,null=True)
+    title = models.CharField(max_length=20, unique=True, null=False, blank=False)
+    code = models.CharField(max_length=10, unique=True, null=False, blank=False)
     created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)    
+    updated_date = models.DateTimeField(auto_now=True)   
 
     class Meta:
         ordering = ['-id']
-        verbose_name_plural = '06. Products Sizes'
-        
+        verbose_name_plural = '06. Product Sizes'
+
     def __str__(self):
-        return f'{self.title} x {self.code}'
+        return f'{self.title} ({self.code})' if self.code else self.title
 
 class Variants(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_variants')
-    title = models.CharField(max_length=100, blank=True,null=True)
-    color = models.ForeignKey(Color, on_delete=models.CASCADE,blank=True,null=True)
-    size = models.ForeignKey(Size, on_delete=models.CASCADE,blank=True,null=True)
-    image_id =  models.PositiveIntegerField(blank=True, null=True, default=0)
+    title = models.CharField(max_length=100, blank=True, null=True)
+    color = models.ForeignKey(Color, on_delete=models.CASCADE, blank=True, null=True)
+    size = models.ForeignKey(Size, on_delete=models.CASCADE, blank=True, null=True)
+    image_id = models.PositiveIntegerField(blank=True, null=True, default=0)
     quantity = models.PositiveIntegerField(default=1)
-    price = models.PositiveIntegerField(default=0)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)    
-
+    updated_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-id']
         verbose_name_plural = '07. Product Variants'
-        
+
     def __str__(self):
-            return self.title if self.title else f"Variant {self.id} of {self.product.title}"
-    
+        return self.title if self.title else f"Variant {self.id} of {self.product.title}"
+
     @property
     def image(self):
-        """Safely return the image URL or an empty string if not found."""
-        try:
-            img = Images.objects.get(id=self.image_id)
-            return img.image.url if img.image else "No Image"
-        except Images.DoesNotExist:
-            return ""
-    
-    @property
-    def image_tag(self):
-        """Safely return an image tag or a placeholder if not found."""
-        try:
-            img = Images.objects.get(id=self.image_id)
-            return mark_safe(f'<img src="{img.image.url}" width="50" height="50"/>')
-        except Images.DoesNotExist:
-            return mark_safe('<span>No Image</span>')
+        if self.image_id:
+            img = Images.objects.filter(id=self.image_id).first()
+            return img.image.url if img and img.image else "No Image"
+        return "No Image"
 
 class  Slider(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='top_sliders')
-    title = models.CharField(max_length=150, null=False, blank=False)
+    title = models.CharField(max_length=150, unique=True, null=False, blank=False)
     image = models.ImageField(upload_to='slider', null=True, blank=True)
     status = models.BooleanField(default=True)
     created_date = models.DateTimeField(auto_now_add=True)
@@ -236,10 +205,10 @@ class  Slider(models.Model):
     
 class  Banner(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    title = models.CharField(max_length=150, null=False, blank=False)
+    title = models.CharField(max_length=150, unique=True, null=False, blank=False)
     image = models.ImageField(upload_to='banners', null=True, blank=True)
     side_deals = models.BooleanField(default=False)
-    new_side = models.BooleanField(default=False)
+    side_deals_is_active = models.BooleanField(default=False)
     status = models.BooleanField(default=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
@@ -260,13 +229,13 @@ class  Banner(models.Model):
      
 class  Future(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='computers')
-    title = models.CharField(max_length=150, null=True, blank=True)
+    title = models.CharField(max_length=150, unique=True, null=True, blank=True)
     hard_disk = models.CharField(max_length=150, null=True, blank=True)
     cpu = models.CharField(max_length=150, null=True, blank=True)
     ram = models.CharField(max_length=150, null=True, blank=True)
     os = models.CharField(max_length=150, null=True, blank=True)
     special_feature = models.CharField(max_length=150, null=True, blank=True)
-    ghaphic = models.CharField(max_length=150, null=True, blank=True)
+    graphic = models.CharField(max_length=150, null=True, blank=True)
     status = models.BooleanField(default=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
@@ -279,18 +248,18 @@ class  Future(models.Model):
         return self.title
     
 class Review(models.Model):
-    product=models.ForeignKey(Product,on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     subject = models.CharField(max_length=50, blank=True)
-    comment = models.CharField(max_length=50,blank=True)
+    comment = models.TextField(blank=True)
     rate = models.IntegerField(default=1)
-    status=models.BooleanField(default=True)
+    status = models.BooleanField(default=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-id']
         verbose_name_plural = '11. Reviews'
-        
+
     def __str__(self):
-        return self.subject
+        return self.subject if self.subject else f"Review by {self.user.username} on {self.product.title}"
