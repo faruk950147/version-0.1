@@ -180,6 +180,15 @@ class Variants(models.Model):
             img = Images.objects.filter(id=self.image_id).first()
             return img.image.url if img and img.image else "No Image"
         return "No Image"
+    
+    @property
+    def image_tag(self):
+        """Safely return an image tag or a placeholder if not found."""
+        try:
+            img = Images.objects.get(id=self.image_id)
+            return mark_safe(f'<img src="{img.image.url}" width="50" height="50"/>')
+        except Images.DoesNotExist:
+            return mark_safe('<span>No Image</span>')
 
 class  Slider(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='top_sliders')
