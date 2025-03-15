@@ -200,76 +200,66 @@
           e.preventDefault()
         $(".editBox").stop().fadeToggle(1000)
         });
-        //edit profile
-        $("#editBtn").on("click", function(e){
-          e.preventDefault()
-          let username = $("#form #id_username").val()
-          let email = $("#form #id_email").val()
-          let country = $("#form #id_country").val()
-          let city = $("#form #id_city").val()
-          let home_city = $("#form #id_home_city").val()
-          let zip_code = $("#form #id_zip_code").val()
-          let phone = $("#form #id_phone").val()
-          let address = $("#form #id_address").val()
-          let image =  $("input[id^='id_image']")[0].files[0]
-          let csrfmiddlewaretoken = $('#form input[name=csrfmiddlewaretoken]').val();
-          let data = new FormData()
-          data.append("username", username)
-          data.append("email", email)
-          data.append("country", country)
-          data.append("city", city)
-          data.append("home_city", home_city)
-          data.append("zip_code", zip_code)
-          data.append("phone", phone)
-          data.append("address", address)
-          data.append("image", image)
-          data.append("csrfmiddlewaretoken", csrfmiddlewaretoken)
-          if(username.length > 0 && email.length > 0 && country.length > 0 && city.length > 0 && home_city.length > 0 && zip_code.length > 0 && phone.length > 0 && address.length > 0){
-            $.ajax({
-              url:"{% url 'profileview' %}",
-              method:"POST",
-              processData:false,
-              contentType:false,
-              mimeType:"multipart/form-data",
-              data:data,
-              dataType:"json",
-              success:function(res){
-                if(res.status == 200){
-                  $(".editBox").hide(1000)
-                  $('.profileBox').load(window.location.href + ' .profileBox');
-                  alertify.success(res.messages)
-                }
-                else if(res.status == 400){
-                  alertify.error(res.messages)
-                }
-              }
-            });
+        
+        // Edit Profile
+        $("#editBtn").on("click", function(e) {
+          e.preventDefault();
+      
+          // Collect form data
+          let data = {
+              username: $("#form #id_username").val().trim(),
+              email: $("#form #id_email").val().trim(),
+              country: $("#form #id_country").val().trim(),
+              city: $("#form #id_city").val().trim(),
+              home_city: $("#form #id_home_city").val().trim(),
+              zip_code: $("#form #id_zip_code").val().trim(),
+              phone: $("#form #id_phone").val().trim(),
+              address: $("#form #id_address").val().trim()
+          };
+      
+          //  Check image file
+          let image = $("input[id^='id_image']")[0].files[0];
+          if (image) {
+              data.image = image;  // Add image data
           }
-          else{
-            if(username == ""){
-              alertify.error('Please fill up your username')
-            }
-            if(email == ""){
-              alertify.error('Please fill up your email')
-            }
-            if(country == ""){
-              alertify.error('Please fill up your country')
-            }
-            if(city == ""){
-              alertify.error('Please fill up your city')
-            }
-            if(home_city == ""){
-              alertify.error('Please fill up your home city')
-            }
-            if(zip_code == ""){
-              alertify.error('Please fill up your zip code')
-            }
-            if(phone == ""){
-              alertify.error('Please fill up your phone')
-            }
-            if(address == ""){
-              alertify.error('Please fill up your address')
-            }
+      
+          // CSRF token collection  
+          let csrfmiddlewaretoken = $('#form input[name=csrfmiddlewaretoken]').val();
+      
+          // If form data is complete, send AJAX request
+          if (data.username && data.email && data.country && data.city && data.home_city && data.zip_code && data.phone && data.address) {
+              $.ajax({
+                  url: "{% url 'profileview' %}",
+                  method: "POST",
+                  contentType: "application/json",  // JSON post data
+                  data: JSON.stringify(data),  // Data JSON format
+                  dataType: "json",
+                  headers: {
+                      "X-CSRFToken": csrfmiddlewaretoken  // CSRF token header
+                  },
+                  success: function(res) {
+                      if (res.status == 200) {
+                          $(".editBox").hide(1000);
+                          $('.profileBox').load(window.location.href + ' .profileBox');
+                          alertify.success(res.messages);
+                      } else if (res.status == 400) {
+                          alertify.error(res.messages);
+                      }
+                  },
+                  error: function(xhr, status, error) {
+                      alertify.error('An error occurred. Please try again later.');
+                  }
+              });
+          } else {
+              // Field check message  
+              if (!data.username) alertify.error('Please fill up your username');
+              if (!data.email) alertify.error('Please fill up your email');
+              if (!data.country) alertify.error('Please fill up your country');
+              if (!data.city) alertify.error('Please fill up your city');
+              if (!data.home_city) alertify.error('Please fill up your home city');
+              if (!data.zip_code) alertify.error('Please fill up your zip code');
+              if (!data.phone) alertify.error('Please fill up your phone');
+              if (!data.address) alertify.error('Please fill up your address');
           }
         });
 
