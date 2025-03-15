@@ -354,30 +354,23 @@ class ResetPasswordView(LogoutRequiredMixin, generic.View):
 @method_decorator(never_cache, name='dispatch')    
 class ProfileView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
-
     def get(self, request):
+        
         return render(request, 'account/profile.html')
-
     def post(self, request):
-        try:
-            # JSON data load
-            data = json.loads(request.body)
-            
-            # Profile data retrieve
-            username = data.get("username")
-            email = data.get("email")
-            country = data.get("country")
-            city = data.get("city")
-            home_city = data.get("home_city")
-            zip_code = data.get("zip_code")
-            phone = data.get("phone")
-            address = data.get("address")
-            image = data.get("image")  # If image exists
+        if request.method == "POST":
+            username = request.POST.get("username")
+            email = request.POST.get("email")
+            country = request.POST.get("country")
+            city = request.POST.get("city")
+            home_city = request.POST.get("home_city")
+            zip_code = request.POST.get("zip_code")
+            phone = request.POST.get("phone")
+            address = request.POST.get("address")
             user = get_object_or_404(User, id=request.user.id)
             user.username = username
             user.email = email
             user.save()
-
             user_p = get_object_or_404(Profile, user=request.user.id)
             user_p.country = country
             user_p.city = city
@@ -385,16 +378,9 @@ class ProfileView(LoginRequiredMixin, generic.View):
             user_p.zip_code = zip_code
             user_p.phone = phone
             user_p.address = address
-
-            if image:
-                # Update image
+            if "image" in request.FILES:
+                image = request.FILES.get("image")
                 user_p.image = image
             user_p.save()
-
             return JsonResponse({"status": 200, 'messages': 'Your profile updated successfully!'})
-
-        except json.JSONDecodeError:
-            return JsonResponse({'status': 400, 'messages': 'Invalid JSON format!'})
-        
-        except Exception as e:
-            return JsonResponse({'status': 500, 'messages': f'Something went wrong: {str(e)}'})
+        return render(request, 'account/profile.html')
