@@ -107,7 +107,7 @@
 								</div>
 
 								<!-- Color Selection -->
-								<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+								{% comment %} <div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
 									<span class="text-uppercase">Color:</span>
 									{% if unique_colors %}
 										{% for color_id, color_data in unique_colors.items %}
@@ -125,6 +125,10 @@
 											</div>
 										{% endfor %}
 									{% endif %}
+								</div> {% endcomment %}
+								<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;" id="color-container">
+									<span class="text-uppercase">Color:</span>
+									<!-- Colors will be populated dynamically here -->
 								</div>
 								
 								<form action="" method="POST" id="addToChartForm">

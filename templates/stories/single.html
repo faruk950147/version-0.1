@@ -138,6 +138,53 @@
 				$(`input[name='rate'][value='${rate}']`).prop("checked", true);
 			});
 
+			// Listen for changes in the size selection
+			$(document).on("change", "#size-select", function() {
+				var selectedSize = $(this).val();
+				console.log(selectedSize);
+				// If a size is selected, make the AJAX request
+				if (selectedSize) {
+					$.ajax({
+						url: "{% url 'get_colors_by_size' %}",  // The URL of the view that handles fetching colors by size
+						method: "GET",
+						data: {
+							'size_id': selectedSize  // Send the selected size ID
+						},
+						success: function(response) {
+							// Empty the color container before adding new colors
+							$('#color-container').html('<span class="text-uppercase">Color:</span>');
+							
+							// Check if there are any colors returned
+							if (response.colors.length > 0) {
+								// Loop through the returned colors and append to the color container
+								response.colors.forEach(function(color) {
+									var colorHtml = `
+										<div class="color" style="display: flex; flex-direction: column; align-items: center;">
+											<input type="radio" name="color" id="color${color.id}" value="${color.id}">
+											<label for="color${color.id}" style="background-color:${color.code}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
+											<div class="variant-img" style="text-align: center;">
+												<img class="thumb" src="${color.image}" alt="${color.title}" width="50" style="object-fit: contain;">
+											</div>
+											<span>${color.title}</span>
+										</div>
+									`;
+									$('#color-container').append(colorHtml);
+								});
+							} else {
+								$('#color-container').append('<p>No colors available for the selected size.</p>');
+							}
+						},
+						error: function(xhr, status, error) {
+							console.error("Error fetching colors:", error);
+							$('#color-container').append('<p>Error fetching colors. Please try again later.</p>');
+						}
+					});
+				} else {
+					// If no size is selected, clear the color options
+					$('#color-container').html('<span class="text-uppercase">Color:</span>');
+				}
+			});
+
 		});
 	</script>
 {% endblock extra_scripts %}	

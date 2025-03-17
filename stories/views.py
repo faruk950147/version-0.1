@@ -68,6 +68,28 @@ class SingleProductView(generic.View):
         }
         return render(request, 'stories/single.html', context)
 
+def get_colors_by_size(request):
+    size_id = request.GET.get('size_id')
+    
+    if size_id:
+        # Fetch the variants based on the selected size
+        variants = Variants.objects.filter(size_id=size_id)
+        
+        # Collect the color data for each variant
+        colors = []
+        for variant in variants:
+            if variant.color:
+                colors.append({
+                    'id': variant.color.id,
+                    'title': variant.color.title,
+                    'code': variant.color.code,
+                    'image': variant.image.url if variant.image else 'default_image_url',  # Use a default image URL if none is available
+                })
+        
+        return JsonResponse({'colors': colors})
+    else:
+        return JsonResponse({'colors': []})  # Return an empty list if no size_id is provided
+
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
