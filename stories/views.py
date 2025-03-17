@@ -34,24 +34,48 @@ class HomeView(generic.View):
         }
         return render(request, 'stories/home.html', context)
 
+
 @method_decorator(never_cache, name='dispatch')
 class SingleProductView(generic.View):
     def get(self, request, id):
-        # Retrieve the product by id or return a 404 error if not found
+        # Get the product based on the provided id or return a 404 error if not found
         product = get_object_or_404(Product, id=id)
-        # Retrieve related products:
+
+        # Get related products from the same category, excluding the current product
         related_products = Product.objects.filter(category=product.category).exclude(id=id).select_related('category').order_by('-id')[:4]
-        # Retrieve active reviews for the product:
+
+        # Get active reviews for this product
         reviews = Review.objects.filter(product=product, status=True).select_related('user')
+
+        # Count the total number of reviews for this product
         reviews_total = reviews.count()
-        # Build the initial context dictionary.
+        # Prefetch for color and size variants to avoid unnecessary queries
+        size_variants = Variants.objects.filter(product=product, size__isnull=False).prefetch_related('size').order_by('size')
+        color_variants = Variants.objects.filter(product=product, color__isnull=False).prefetch_related('color').order_by('color')
+
+
+        # Get unique size and color variants with associated image URLs
+        unique_sizes = {variant.size.id: {
+            'size': variant.size,
+            'image': variant.image
+        } for variant in size_variants}
+
+        unique_colors = {variant.color.id: {
+            'color': variant.color,
+            'image': variant.image
+        } for variant in color_variants}
+
+        
         context = {
-            'product': product,
-            'related_products': related_products,
-            'reviews': reviews,
-            'reviews_total': reviews_total,
+            'product': product,  
+            'related_products': related_products,  
+            'reviews': reviews,  
+            'reviews_total': reviews_total,  
+            'unique_sizes': unique_sizes,  
+            'unique_colors': unique_colors,
         }
         return render(request, 'stories/single.html', context)
+
 
 
 @method_decorator(never_cache, name='dispatch')

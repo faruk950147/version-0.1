@@ -90,40 +90,44 @@
 							<p><strong>Size:</strong>{{product.size.title|title}}</p>
 							<p><strong>Color:</strong>{{product.color.title|title}}</p>
 
-
 							<div class="product-options">
-								<div class="size-option" style="margin-bottom: 20px;">
-									<span class="text-uppercase" for="size">Size:</span>
-									<select class="size">
-										<option class="text-uppercase" value="" disabled selected>Choose a size</option>
-										<option value="M">Medium (M)</option>
-										<option value="L">Large (L)</option>
-										<option value="XL">Extra Large (XL)</option>
-									</select>
-								</div>
+								<!-- Size Selection -->
+								<select class="size">
+									<option class="text-capfirst" value="" disabled selected>Choose a size</option>
+									{% if unique_sizes %}
+										{% for size_id, size_info in unique_sizes.items %}
+											<option value="{{ size_info.size.id }}">
+												{{ size_info.size.title|title }} ({{ size_info.size.code }})
+											</option>
+										{% endfor %}
+									{% endif %}
+								</select>
 
-								<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;  margin-bottom: 20px;">
-
+								<!-- Color Selection -->
+								<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
 									<span class="text-uppercase">Color:</span>
-									<div class="color" style="display: flex; flex-direction: row; align-items: center;">
-										<input type="radio" name="color" id="color1" value="color1" checked>
-										<label for="color1" style="background-color:#000000"></label>
-										<div class="variant-img">
-											<img class="thumb" src="{% static 'img/no-image.jpg' %}" alt="Color 1" width="50">
-										</div>
-									</div>
+									{% if unique_colors %}
+										{% for color_id, color_data in unique_colors.items %}
+											<div class="color" style="display: flex; flex-direction: column; align-items: center;">
+												<!-- Hide the radio button -->
+												<input type="radio" name="color" id="color{{ color_data.color.id }}" value="{{ color_data.color.id }}">
 
-									<div class="color" style="display: flex; flex-direction: row; align-items: center;">
-										<input type="radio" name="color" id="color2" value="color2">
-										<label for="color2" style="background-color:#000000"></label>
-										<div class="variant-img">
-											<img class="thumb" src="{% static 'img/no-image.jpg' %}" alt="Color 2" width="50">
-										</div>
-									</div>
+												<!-- Label with background color and image below -->
+												<label for="color{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 
+												<div class="variant-img" style="text-align: center;">
+													<!-- Display image -->
+													<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
+												</div>
+
+												<!-- Color Title under the image -->
+												<span>{{ color_data.color.title|title }}</span>
+											</div>
+										{% endfor %}
+									{% endif %}
 								</div>
-	
-								<form action="" method="post" id="addToChartForm">
+								
+								<form action="" method="POST" id="addToChartForm">
 									<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 									<h3 class="product-price">
 										$ {{ product.price }}
@@ -134,8 +138,7 @@
 									</h3>
 									<div class="qty-input" style="margin-top: 15px;">
 										<span class="text-uppercase">QTY: </span>
-										<input class="input" name="quantity" type="number" value="1" min="1"
-											max="{{ product.in_stock_max }}">
+										<input class="input" name="quantity" type="number" value="1" min="1" max="{{ product.in_stock_max }}">
 										<button type="submit" class="primary-btn add-to-cart">
 											<i class="fa fa-shopping-cart"></i> Add to Cart
 										</button>

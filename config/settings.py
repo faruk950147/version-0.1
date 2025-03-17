@@ -326,12 +326,12 @@ UNFOLD = {
                         "link":  reverse_lazy("admin:account_user_changelist"),
                         "permission": lambda request: request.user.is_superuser,
                     },
-                    # {
-                    #     "title": _("Stories"),
-                    #     "icon": "shopping_bag",  # Supported icon set: https://fonts.google.com/icons
-                    #     "link": reverse_lazy("admin:stories_category_changelist"),
-                    #     "permission": lambda request: request.user.is_superuser,
-                    # },
+                    {
+                        "title": _("Stories"),
+                        "icon": "shopping_bag",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:stories_category_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
                     # {
                     #     "title": _("Carts"),
                     #     "icon": "shopping_cart_checkout",  # Supported icon set: https://fonts.google.com/icons
