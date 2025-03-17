@@ -94,7 +94,7 @@
 								<!-- Size Selection -->
 								<div class="size-option" style="margin-bottom: 20px;">
 									<span class="text-uppercase" for="size">Size:</span>
-									<select class="size">
+									<select class="size" id="size-select">
 										<option class="text-capfirst" value="" disabled selected>Choose a size</option>
 										{% if unique_sizes %}
 											{% for size_id, size_info in unique_sizes.items %}
