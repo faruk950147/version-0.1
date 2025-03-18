@@ -53,10 +53,10 @@ class SingleProductView(generic.View):
         color_variants = Variants.objects.filter(product=product, color__isnull=False).prefetch_related('color').order_by('color')
 
         # Get unique size variants with associated image URLs
-        unique_sizes = {variant.size.id: {'size': variant.size, 'image': variant.image if variant.image else 'default_image_url'}for variant in size_variants}
+        unique_sizes = {variant.size.id: {'size': variant.size, 'image': variant.image if variant.image else 'default_image_url', 'price': variant.price}for variant in size_variants}
 
         # Get unique color variants with associated image URLs
-        unique_colors = {variant.color.id: {'color': variant.color, 'image': variant.image if variant.image else 'default_image_url'} for variant in color_variants}
+        unique_colors = {variant.color.id: {'color': variant.color, 'image': variant.image if variant.image else 'default_image_url', 'price': variant.price} for variant in color_variants}
 
         context = {
             'product': product,  
@@ -83,12 +83,13 @@ def get_colors_by_size(request):
                     'id': variant.color.id,
                     'title': variant.color.title,
                     'code': variant.color.code,
-                    'image': variant.image.url if variant.image else 'default_image_url',  # Use a default image URL if none is available
+                    'image': variant.image if variant.image else 'default_image_url', 
+                    'price': variant.price
                 })
         
-        return JsonResponse({'colors': colors})
+        return JsonResponse({'colors': colors, 'status': 200, 'messages': 'Colors available for this size'})
     else:
-        return JsonResponse({'colors': []})  # Return an empty list if no size_id is provided
+        return JsonResponse({'colors': [], 'status': 400, 'messages': 'Invalid size ID'})  
 
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
