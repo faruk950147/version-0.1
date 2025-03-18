@@ -54,6 +54,7 @@ class Brand(models.Model):
 class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='cat_products')
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name='bra_products')
+    variant = models.CharField(max_length=10, choices=[('True', 'True'), ('False', 'False')])
     title = models.CharField(max_length=150, unique=True, null=False, blank=False)
     model = models.CharField(max_length=150, null=True, blank=True)
     available_in_stock_msg = models.CharField(max_length=150, null=True, blank=True)
