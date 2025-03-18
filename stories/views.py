@@ -13,7 +13,7 @@ import json
 from stories.models import (
     Category,Brand,Product, Images,Color,Size,Variants,Slider,Banner,ProductFuture,Review
 )
-from cart.forms import CartForm
+# from cart.forms import CartForm
 
 # Create your views here.
 @method_decorator(never_cache, name='dispatch')
@@ -70,25 +70,37 @@ class SingleProductView(generic.View):
 def get_colors_by_size(request):
     size_id = request.GET.get('size_id')
     
-    if size_id:
-        # Fetch the variants based on the selected size
-        variants = Variants.objects.filter(size_id=size_id)
-        
-        # Collect the color data for each variant
-        colors = []
-        for variant in variants:
-            if variant.color:
-                colors.append({
-                    'id': variant.color.id,
-                    'title': variant.color.title,
-                    'code': variant.color.code,
-                    'image': variant.image if variant.image else 'default_image_url', 
-                    'price': variant.price
-                })
-        
-        return JsonResponse({'colors': colors, 'status': 200, 'messages': 'Colors available for this size'})
-    else:
-        return JsonResponse({'colors': [], 'status': 400, 'messages': 'Invalid size ID'})  
+    if not size_id:
+        return JsonResponse({'colors': [], 'status': 400, 'messages': 'Invalid size ID'})
+
+    variants = Variants.objects.filter(size_id=size_id).select_related('size', 'color')
+
+    if not variants.exists():
+        return JsonResponse({'colors': [], 'status': 404, 'messages': 'No colors available for this size'})
+
+    first_variant = variants.first()
+    selected_size = {
+        'title': first_variant.size.title,
+        'code': first_variant.size.code
+    }
+
+    colors = [
+        {
+            'id': variant.color.id,
+            'title': variant.color.title,
+            'code': variant.color.code,
+            'image': variant.image if variant.image else 'default_image_url',
+            'price': variant.price
+        }
+        for variant in variants if variant.color
+    ]
+
+    return JsonResponse({
+        'colors': colors,
+        'size': selected_size,
+        'status': 200,
+        'messages': f'Colors available for this size {selected_size["title"]}'
+    })
 
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
