@@ -13,8 +13,7 @@ import json
 from stories.models import (
     Category,Brand,Product, Images,Color,Size,Variants,Slider,Banner,ProductFuture,Review
 )
-# from cart.forms import CartForm
-#import store models
+from cart.forms import CartForm
 
 # Create your views here.
 @method_decorator(never_cache, name='dispatch')
