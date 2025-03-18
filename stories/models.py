@@ -54,7 +54,6 @@ class Brand(models.Model):
 class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='cat_products')
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name='bra_products')
-    variant = models.CharField(max_length=10, choices=[('True', 'True'), ('False', 'False')], default='False')
     title = models.CharField(max_length=150, unique=True, null=False, blank=False)
     model = models.CharField(max_length=150, null=True, blank=True)
     available_in_stock_msg = models.CharField(max_length=150, null=True, blank=True)
@@ -110,7 +109,7 @@ class Product(models.Model):
         return f'{self.title} - {"Active" if self.status else "Inactive"}'
 
 class Images(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='products_images')
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='products_images')
     image = models.ImageField(upload_to='product_images/%Y/%m/%d/', null=True, blank=True)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
@@ -160,10 +159,10 @@ class Size(models.Model):
         return f'{self.title} ({self.code})' if self.code else self.title
 
 class Variants(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_variants')
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, related_name='product_variants')
     title = models.CharField(max_length=100, blank=True, null=True)
-    color = models.ForeignKey(Color, on_delete=models.CASCADE, blank=True, null=True)
-    size = models.ForeignKey(Size, on_delete=models.CASCADE, blank=True, null=True)
+    color = models.ForeignKey(Color, on_delete=models.SET_NULL, null=True, blank=True)
+    size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, blank=True)
     image_id = models.PositiveIntegerField(blank=True, null=True, default=0)
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
@@ -240,7 +239,7 @@ class Banner(models.Model):
         return f'{self.title}'
      
 class ProductFuture(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='computers')
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='computers')
     title = models.CharField(max_length=150, unique=True, null=True, blank=True)
     hard_disk = models.CharField(max_length=150, null=True, blank=True)
     cpu = models.CharField(max_length=150, null=True, blank=True)

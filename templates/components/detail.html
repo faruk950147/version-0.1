@@ -92,7 +92,7 @@
 							<p class="selected-price">Selected Price: </p>
 
 							<div class="product-options">
-								{% if product.variant == 'True' and unique_sizes %}
+								{% if unique_sizes %}
 									<!-- Size Selection -->
 									<div class="size-option" style="margin-bottom: 20px;">
 										<span class="text-uppercase" for="size">Size:</span>
@@ -107,7 +107,7 @@
 									</div>
 								{% endif %}
 
-								{% if product.variant == 'True' and unique_colors %}
+								{% if unique_colors %}
 									<!-- Color Selection -->
 									<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
 										<span class="text-uppercase">Color:</span>
