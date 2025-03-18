@@ -97,33 +97,29 @@
 									<div class="size-option" style="margin-bottom: 20px;">
 										<span class="text-uppercase" for="size">Size:</span>
 										<select class="size-variant" id="size-select">
-											<option class="text-capfirst" value="" disabled selected>Choose a size</option>
+											<option class="text-capfirst" value="" disabled {% if not selected_size %}selected{% endif %}>Choose a size</option>
 											{% for size_id, size_info in unique_sizes.items %}
-												<option value="{{ size_info.size.id }}">								
+												<option value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size %}selected{% endif %}> 
 													{{ size_info.size.title|title }} ({{ size_info.size.code }})
 												</option>
 											{% endfor %}
 										</select>
 									</div>
-								{% endif %}
-
+							    {% endif %}
+							
 								{% if unique_colors %}
 									<!-- Color Selection -->
 									<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
 										<span class="text-uppercase">Color:</span>
-										<!-- Colors will be populated dynamically here -->
 										<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 											{% for color_id, color_data in unique_colors.items %}
 												<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-													<!-- Hide the radio button -->
-													<input type="radio" name="color" id="color{{ color_data.color.id }}" value="{{ color_data.color.id }}">
-													<!-- Label with background color and image below -->
+													<input type="radio" name="color" id="color{{ color_data.color.id }}" value="{{ color_data.color.id }}"
+														{% if color_data.color.id == selected_color %}checked{% endif %}>
 													<label for="color{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 													<div class="variant-img" style="text-align: center;">
-														<!-- Display image -->
 														<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
 													</div>
-													<!-- Color Title under the image -->
 													<span>{{ color_data.color.title|title }} ({{ color_data.price }})</span>
 												</div>
 											{% endfor %}
