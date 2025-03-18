@@ -67,41 +67,73 @@ class SingleProductView(generic.View):
         }
         return render(request, 'stories/single.html', context)
 
-def get_colors_by_size(request):
-    size_id = request.GET.get('size_id')
+class GetColorsBySize(generic.View):
+    def get(self, request):
+        size_id = request.GET.get('size_id')
+        # Check if size_id is an integer
+        try:
+            size_id = int(size_id)
+        except (ValueError, TypeError):
+            return JsonResponse({'colors': [], 'status': 400, 'messages': 'Invalid size ID'})
+
+        # Get variants for the selected size
+        variants = Variants.objects.filter(size_id=size_id).select_related('size', 'color')
+
+        if not variants.exists():
+            return JsonResponse({'colors': [], 'status': 404, 'messages': 'No colors available for this size'})
+
+        # Get first matching variant (optimized)
+        selected_variant = variants.first()
+        selected_size_title = selected_variant.size.title if selected_variant else "Unknown Size"
+        selected_price = selected_variant.price if selected_variant else None
+        
+        colors = [
+            {
+                'id': variant.color.id,
+                'title': variant.color.title,
+                'code': variant.color.code,
+                'image': variant.image if variant.image else 'default_image_url',
+                'price': variant.price
+            }
+            for variant in variants if variant.color
+        ]
+        
+        return JsonResponse({
+            'colors': colors,
+            'selected_size_title': selected_size_title,
+            'selected_price': selected_price,
+            'status': 200,
+            'messages': f'Colors available for this size {selected_size_title}'})
+   
+@method_decorator(never_cache, name='dispatch')
+class GetPriceByColor(generic.View):
+    def get(self, request):
+        color_id = request.GET.get('color_id')
+        # Check if color_id is an integer
+        try:
+            color_id = int(color_id)
+        except (ValueError, TypeError):
+            return JsonResponse({'price': None, 'status': 400, 'messages': 'Invalid color ID'})
+
+        # Get variants for the selected color
+        variants = Variants.objects.filter(color_id=color_id).select_related('color', 'size')
+
+        if not variants.exists():
+            return JsonResponse({'price': None, 'status': 404, 'messages': 'No price available for this color'})
+
+        # Get first matching variant (optimized)
+        selected_variant = variants.first()
+
+        selected_color_title = selected_variant.color.title if selected_variant else "Unknown Color"
+        selected_price = selected_variant.price if selected_variant else None
     
-    if not size_id:
-        return JsonResponse({'colors': [], 'status': 400, 'messages': 'Invalid size ID'})
-
-    variants = Variants.objects.filter(size_id=size_id).select_related('size', 'color')
-
-    if not variants.exists():
-        return JsonResponse({'colors': [], 'status': 404, 'messages': 'No colors available for this size'})
-
-    first_variant = variants.first()
-    selected_size = {
-        'title': first_variant.size.title,
-        'code': first_variant.size.code
-    }
-
-    colors = [
-        {
-            'id': variant.color.id,
-            'title': variant.color.title,
-            'code': variant.color.code,
-            'image': variant.image if variant.image else 'default_image_url',
-            'price': variant.price
-        }
-        for variant in variants if variant.color
-    ]
-
-    return JsonResponse({
-        'colors': colors,
-        'size': selected_size,
-        'status': 200,
-        'messages': f'Colors available for this size {selected_size["title"]}'
-    })
-
+        return JsonResponse({
+            'selected_color_title': selected_color_title,
+            'selected_price': selected_price,
+            'status': 200,
+            'messages': f'Price available for this color {selected_color_title}'
+        })
+ 
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')

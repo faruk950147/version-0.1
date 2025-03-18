@@ -143,7 +143,7 @@
 				let selectedSize = $(this).val();
 				if(selectedSize.length) {
 					$.ajax({
-						url: "{% url 'get_colors_by_size' %}",
+						url: "{% url 'getcolorsbysize' %}",
 						method: "GET",
 						data: {
 							'size_id': selectedSize
@@ -165,11 +165,39 @@
 								});
 
 								// Update the color options
+								$(".selected-size").text("Selected Size: " + res.selected_size_title);
+								$(".selected-price").text("Selected Price: $ " + res.selected_price);
 								$(".color-variant").html(colorHtml);
 								alertify.success(res.messages);
 							} else if(res.status == 400){
 								alertify.error(res.messages);
 								$(".color-variant").html("<p style='color:red;'>No colors available for this size.</p>");
+							}
+						}
+					});
+				}
+			});
+
+			// Listen for changes in the color selection
+			$(document).on("change", "input[name='color']", function() {
+				let selectedColor = $(this).val();
+				if(selectedColor.length) {
+					$.ajax({
+						url: "{% url 'getpricebycolor' %}",
+						method: "GET",
+						data: {
+							'color_id': selectedColor
+						},
+						success: function(res){
+							console.log(res);
+							if(res.status == 200){
+								$(".selected-color").text("Selected Color: " + res.selected_color_title);
+								$(".selected-price").text("Selected Price: $ " + res.selected_price);
+							} else if(res.status == 400){
+								errorHtml = "<p style='color:red;'>No price available for this color.</p>";
+								$(".selected-color").text("");
+								$(".selected-price").text("");
+								$(".color-variant").html(errorHtml);
 							}
 						}
 					});
