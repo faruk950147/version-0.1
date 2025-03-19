@@ -42,11 +42,12 @@
 			updateMainImage();
 
 			// Color or Size change event
-			$(document).on("change", "input[name='color-select'], input[name='size-select']", function (e) {
+			$(document).on("change", "input[name='color-select'], input[name='size-select']", function () {
 				updateMainImage();
 			});
 
-			// Render stars
+
+			// render stars
 			function renderStars(rate) {
 				let stars = "";
 				for (let i = 1; i <= 5; i++) {
@@ -144,8 +145,7 @@
 			});
 			
 			// Handle edit review
-			$(document).on("click", ".edit-review", function (e) {
-				e.preventDefault();
+			$(document).on("click", ".edit-review", function () {
 				let review_id = $(this).data("id");
 				let subject = $(this).data("subject");
 				let comment = $(this).data("comment");
@@ -163,8 +163,7 @@
 			});
 
 			// Listen for changes in the size selection
-			$(document).on("change", "#size-select", function(e) {
-				e.preventDefault();
+			$(document).on("change", "#size-select", function() {
 				let selectedSize = $(this).val();
 				if(selectedSize.length) {
 					$.ajax({
@@ -204,8 +203,7 @@
 			});
 
 			// Listen for changes in the color selection
-			$(document).on("change", "input[name='color-select']", function(e) {
-				e.preventDefault();
+			$(document).on("change", "input[name='color-select']", function() {
 				let selectedColor = $(this).val();
 				if(selectedColor.length) {
 					$.ajax({
@@ -229,8 +227,7 @@
 				}
 			});
 
-			$(document).on("change", "input[name='size-select']", function(e) {
-				e.preventDefault();
+			$(document).on("change", "input[name='size-select']", function() {
 				let selectedSize = $(this).val();
 				if(selectedSize.length) {
 					$.ajax({
