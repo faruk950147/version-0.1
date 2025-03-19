@@ -189,7 +189,6 @@
 							'color_id': selectedColor
 						},
 						success: function(res){
-							console.log(res);
 							if(res.status == 200){
 								$(".selected-color").text("Selected Color: " + res.selected_color_title);
 								$(".selected-price").text("Selected Price: $ " + res.selected_price);
@@ -214,7 +213,6 @@
 							'size_id': selectedSize
 						},
 						success: function(res){
-							console.log(res);
 							if(res.status == 200){
 								$(".selected-size").text("Selected Size: " + res.selected_size_title);
 								$(".selected-price").text("Selected Price: $ " + res.selected_price);

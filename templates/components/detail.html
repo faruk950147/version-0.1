@@ -12,46 +12,51 @@
 						<input type="hidden" name="productid" id="productid" value="{{ product.id }}">
 						<div id="product-main-view">
 							<div class="product-view" style="width: 400px; height: 450px;">
-								{% if product.products_images.first.image  %}
-								<img id="main-product-image" src="{{product.products_images.first.image.url}}" alt="" style="width: 100%; height: 100%;">
+								{% if selected_color_image %}
+									<img id="main-product-image" src="{{ selected_color_image }}" alt="" style="width: 100%; height: 100%;">
+								{% elif product.products_images.first.image %}
+									<img id="main-product-image" src="{{ product.products_images.first.image.url }}" alt="" style="width: 100%; height: 100%;">
 								{% else %}
-								<img id="main-product-image" src="{% static 'img/no-image.jpg' %}" alt="" style="width: 100%; height: 100%;">
+									<img id="main-product-image" src="{% static 'img/no-image.jpg' %}" alt="" style="width: 100%; height: 100%;">
 								{% endif %}
-
 							</div>
-
+						
 							{% if product.products_images.exists %}
-							{% for images in product.products_images.all %}
-							<div class="product-view" style="width: 400px; height: 450px;">
-								{% if images.image %}
-								<img src="{{images.image.url}}" alt="" style="width: 100%; height: 100%;">
-								{% else %}
-								<img src="{% static 'img/no-image.jpg' %}" alt="" style="width: 100%; height: 100%;">
-								{% endif %}
-							</div>
-							{% endfor %}
+								{% for images in product.products_images.all %}
+									<div class="product-view">
+										{% if images.image %}
+										<img class="gallery-image" src="{{ images.image.url }}" alt="" style="width: 100%; height: 100%;" data-image-url="{{ images.image.url }}">
+										{% else %}
+										<img class="gallery-image" src="{% static 'img/no-image.jpg' %}" alt="" style="width: 100%; height: 100%;" data-image-url="{% static 'img/no-image.jpg' %}">
+										{% endif %}
+									</div>
+								{% endfor %}
 							{% endif %}
 						</div>
+						
+						
 
 						<div id="product-view">
 							<div class="product-view">
-								{% if product.products_images.first.image  %}
-								<img id="main-product-image" src="{{product.products_images.first.image.url}}" alt="" style="width: 100%; height: 100%;">
+								{% if selected_color_image %}
+									<img id="main-product-image" src="{{ selected_color_image }}" alt="" style="width: 100%; height: 100%;">
+								{% elif product.products_images.first.image %}
+									<img id="main-product-image" src="{{ product.products_images.first.image.url }}" alt="" style="width: 100%; height: 100%;">
 								{% else %}
-								<img id="main-product-image" src="{% static 'img/no-image.jpg' %}" alt="" style="width: 100%; height: 100%;">
+									<img id="main-product-image" src="{% static 'img/no-image.jpg' %}" alt="" style="width: 100%; height: 100%;">
 								{% endif %}
 							</div>
 							
 							{% if product.products_images.exists %}
-							{% for images in product.products_images.all %}
-							<div class="product-view">
-								{% if images.image %}
-								<img src="{{images.image.url}}" alt="" style="width: 100%; height: 100%;">
-								{% else %}
-								<img src="{% static 'img/no-image.jpg' %}" alt="" style="width: 100%; height: 100%;">
-								{% endif %}
-							</div>
-							{% endfor %}
+								{% for images in product.products_images.all %}
+								<div class="product-view">
+									{% if images.image %}
+										<img class="gallery-image" src="{{images.image.url}}" alt="" style="width: 100%; height: 100%;" data-image-url="{{images.image.url}}">
+									{% else %}
+										<img class="gallery-image" src="{% static 'img/no-image.jpg' %}" alt="" style="width: 100%; height: 100%;" data-image-url="{% static 'img/no-image.jpg' %}">
+									{% endif %}
+								</div>
+								{% endfor %}
 							{% endif %}
 						</div>
 
@@ -101,7 +106,7 @@
 											<div class="size-option" style="margin-bottom: 20px;">
 												<label for="size-select" class="text-uppercase">Size:</label>
 												<select class="size-variant" id="size-select">
-													<option class="text-capitalize" value="" disabled {% if not selected_size %}selected{% endif %}>Choose a size</option>
+													<option class="text-capitalize" value="" {% if not selected_size %}selected{% endif %}>Choose a size</option>
 													{% for size_id, size_info in unique_sizes.items %}
 														<option value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size %}selected{% endif %}> 
 															{{ size_info.size.title|title }} ({{ size_info.size.code }})
@@ -109,15 +114,13 @@
 													{% endfor %}
 												</select>
 											</div>
-
 											<!-- Color Selection -->
 											<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
 												<span class="text-uppercase">Color:</span>
 												<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 													{% for color_id, color_data in unique_colors.items %}
 														<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}"
-															{% if color_data.color.id == selected_color %}checked{% endif %}>
+															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if color_data.color.id == selected_color or not selected_color %}checked{% endif %}>
 															<label for="color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 															<div class="variant-img" style="text-align: center;">
 																<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
@@ -130,49 +133,47 @@
 										{% endif %}
 									{% elif product.variant == "Sizes" or product.variant == "Colors" %}
 										{% if unique_sizes %}
-										<!-- Size Selection -->
-										<div class="size-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
-											<span class="text-uppercase">Size:</span>
-											<div class="size-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
-												{% for size_id, size_info in unique_sizes.items %}
-													<div class="size" style="display: flex; flex-direction: column; align-items: center;">
-														<input type="radio" name="size-select" id="size-select{{ size_info.size.id }}" value="{{ size_info.size.id }}"
-															{% if size_info.size.id == selected_size %}checked{% endif %}>
-														<label for="size-select{{ size_info.size.id }}" style="background-color:{{ size_info.size.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
-														<div class="variant-img" style="text-align: center;">
-															<img class="thumb" src="{{ size_info.image }}" alt="{{ size_info.size.title|title }}" width="50" style="object-fit: contain;">
+											<!-- Size Selection -->
+											<div class="size-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+												<span class="text-uppercase">Size:</span>
+												<div class="size-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
+													{% for size_id, size_info in unique_sizes.items %}
+														<div class="size" style="display: flex; flex-direction: column; align-items: center;">
+															<input type="radio" name="size-select" id="size-select{{ size_info.size.id }}" value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size or not selected_size %}checked{% endif %}>
+															<label for="size-select{{ size_info.size.id }}" style="background-color:{{ size_info.size.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
+															<div class="variant-img" style="text-align: center;">
+																<img class="thumb" src="{{ size_info.image }}" alt="{{ size_info.size.title|title }}" width="50" style="object-fit: contain;">
+															</div>
+															<span>{{ size_info.size.title|title }} ({{ size_info.price }})</span>
 														</div>
-														<span>{{ size_info.size.title|title }} ({{ size_info.size.code }})</span>
-													</div>
-												{% endfor %}
+													{% endfor %}
+												</div>
 											</div>
-										</div>
 										{% endif %}
-
+									
 										{% if unique_colors %}
-										<!-- Color Selection -->
-										<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
-											<span class="text-uppercase">Color:</span>
-											<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
-												{% for color_id, color_data in unique_colors.items %}
-													<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-														<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}"
-															{% if color_data.color.id == selected_color %}checked{% endif %}>
-														<label for="color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
-														<div class="variant-img" style="text-align: center;">
-															<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
+											<!-- Color Selection -->
+											<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+												<span class="text-uppercase">Color:</span>
+												<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
+													{% for color_id, color_data in unique_colors.items %}
+														<div class="color" style="display: flex; flex-direction: column; align-items: center;">
+															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if color_data.color.id == selected_color or not selected_color %}checked{% endif %}>
+															<label for="color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
+															<div class="variant-img" style="text-align: center;">
+																<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
+															</div>
+															<span>{{ color_data.color.title|title }} ({{ color_data.price }})</span>
 														</div>
-														<span>{{ color_data.color.title|title }} ({{ color_data.price }})</span>
-													</div>
-												{% endfor %}
+													{% endfor %}
+												</div>
 											</div>
-										</div>
 										{% endif %}
-
-									{% else %}	
+									{% else %}    
 										<!-- No variant -->
 										<p>No variant available</p>
 									{% endif %}
+								
 								
 
 									<h3 class="product-price">
