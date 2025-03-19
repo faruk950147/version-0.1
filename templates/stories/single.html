@@ -42,7 +42,7 @@
 			updateMainImage();
 
 			// Color or Size change event
-			$(document).on("change", "input[name='color-select'], input[name='size-select']", function () {
+			$(document).on("change", "input[name='color-select'], input[name='size-select']", function (e) {
 				updateMainImage();
 			});
 
@@ -144,7 +144,8 @@
 			});
 			
 			// Handle edit review
-			$(document).on("click", ".edit-review", function () {
+			$(document).on("click", ".edit-review", function (e) {
+				e.preventDefault();
 				let review_id = $(this).data("id");
 				let subject = $(this).data("subject");
 				let comment = $(this).data("comment");
@@ -162,7 +163,8 @@
 			});
 
 			// Listen for changes in the size selection
-			$(document).on("change", "#size-select", function() {
+			$(document).on("change", "#size-select", function(e) {
+				e.preventDefault();
 				let selectedSize = $(this).val();
 				if(selectedSize.length) {
 					$.ajax({
@@ -202,7 +204,8 @@
 			});
 
 			// Listen for changes in the color selection
-			$(document).on("change", "input[name='color-select']", function() {
+			$(document).on("change", "input[name='color-select']", function(e) {
+				e.preventDefault();
 				let selectedColor = $(this).val();
 				if(selectedColor.length) {
 					$.ajax({
@@ -226,7 +229,8 @@
 				}
 			});
 
-			$(document).on("change", "input[name='size-select']", function() {
+			$(document).on("change", "input[name='size-select']", function(e) {
+				e.preventDefault();
 				let selectedSize = $(this).val();
 				if(selectedSize.length) {
 					$.ajax({
