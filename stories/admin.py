@@ -55,12 +55,12 @@ admin.site.register(Images, ImagesAdmin)
 
 class ProductAdmin(ModelAdmin):
     inlines = [ProductImagesInline, ProductVariantsInline]  # ImagesAdmin -> ProductImagesInline
-    list_display = ['id', 'category', 'brand', 'title', 'model', 'available_in_stock_msg', 'in_stock_max', 
+    list_display = ['id', 'category', 'brand', 'variant', 'title', 'model', 'available_in_stock_msg', 'in_stock_max', 
                     'price', 'old_price', 'discount_title', 'discount', 'offers_deadline', 'keyword', 'description', 'addition_des', 
                     'return_policy', 'is_timeline', 'deals', 'new_collection', 'latest_collection', 'pick_collection', 'girls_collection', 'men_collection', 'pc_or_laps', 'in_stock', 'status', 'created_date', 'updated_date']
-    list_editable = ['category', 'brand', 'is_timeline', 'deals', 'new_collection', 'latest_collection', 'pick_collection', 'girls_collection', 'men_collection', 'pc_or_laps', 'in_stock', 'status']
+    list_editable = ['category', 'brand', 'variant', 'is_timeline', 'deals', 'new_collection', 'latest_collection', 'pick_collection', 'girls_collection', 'men_collection', 'pc_or_laps', 'in_stock', 'status']
     search_fields = ['title', 'keyword', 'description']
-    list_filter = ['category', 'brand', 'status', 'created_date', 'updated_date']
+    list_filter = ['category', 'brand', 'variant', 'status', 'created_date', 'updated_date']
     readonly_fields = ['id', 'created_date', 'updated_date']
 
 admin.site.register(Product, ProductAdmin)

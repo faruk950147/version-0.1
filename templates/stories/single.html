@@ -154,8 +154,8 @@
 								$.each(res.colors, function(index, color){
 									colorHtml += `
 										<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-											<input type="radio" name="color" id="color${color.id}" value="${color.id}">
-											<label for="color${color.id}" style="background-color:${color.code}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
+											<input type="radio" name="color-select" id="color-select${color.id}" value="${color.id}">
+											<label for="color-select${color.id}" style="background-color:${color.code}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 											<div class="variant-img" style="text-align: center;">
 												<img class="thumb" src="${color.image}" alt="${color.title}" width="50" style="object-fit: contain;">
 											</div>
@@ -179,7 +179,7 @@
 			});
 
 			// Listen for changes in the color selection
-			$(document).on("change", "input[name='color']", function() {
+			$(document).on("change", "input[name='color-select']", function() {
 				let selectedColor = $(this).val();
 				if(selectedColor.length) {
 					$.ajax({
@@ -196,6 +196,31 @@
 							} else if(res.status == 400){
 								errorHtml = "<p style='color:red;'>No price available for this color.</p>";
 								$(".selected-color").text("");
+								$(".selected-price").text("");
+								$(".color-variant").html(errorHtml);
+							}
+						}
+					});
+				}
+			});
+
+			$(document).on("change", "input[name='size-select']", function() {
+				let selectedSize = $(this).val();
+				if(selectedSize.length) {
+					$.ajax({
+						url: "{% url 'getpricebysize' %}",
+						method: "GET",
+						data: {
+							'size_id': selectedSize
+						},
+						success: function(res){
+							console.log(res);
+							if(res.status == 200){
+								$(".selected-size").text("Selected Size: " + res.selected_size_title);
+								$(".selected-price").text("Selected Price: $ " + res.selected_price);
+							} else if(res.status == 400){
+								errorHtml = "<p style='color:red;'>No price available for this size.</p>";
+								$(".selected-size").text("");
 								$(".selected-price").text("");
 								$(".color-variant").html(errorHtml);
 							}

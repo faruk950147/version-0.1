@@ -95,32 +95,70 @@
 								<form action="" method="POST" id="addToChartForm">
 									<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
-									
-									{% if unique_sizes %}
+									{% if product.variant == "Sizes-Colors" %}
+										{% if unique_sizes and unique_colors %}
+											<!-- Size Selection -->
+											<div class="size-option" style="margin-bottom: 20px;">
+												<label for="size-select" class="text-uppercase">Size:</label>
+												<select class="size-variant" id="size-select">
+													<option class="text-capitalize" value="" disabled {% if not selected_size %}selected{% endif %}>Choose a size</option>
+													{% for size_id, size_info in unique_sizes.items %}
+														<option value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size %}selected{% endif %}> 
+															{{ size_info.size.title|title }} ({{ size_info.size.code }})
+														</option>
+													{% endfor %}
+												</select>
+											</div>
+
+											<!-- Color Selection -->
+											<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+												<span class="text-uppercase">Color:</span>
+												<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
+													{% for color_id, color_data in unique_colors.items %}
+														<div class="color" style="display: flex; flex-direction: column; align-items: center;">
+															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}"
+															{% if color_data.color.id == selected_color %}checked{% endif %}>
+															<label for="color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
+															<div class="variant-img" style="text-align: center;">
+																<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
+															</div>
+															<span>{{ color_data.color.title|title }} ({{ color_data.price }})</span>
+														</div>
+													{% endfor %}
+												</div>
+											</div> 
+										{% endif %}
+									{% elif product.variant == "Sizes" or product.variant == "Colors" %}
+										{% if unique_sizes %}
 										<!-- Size Selection -->
-										<div class="size-option" style="margin-bottom: 20px;">
-											<span class="text-uppercase" for="size">Size:</span>
-											<select class="size-variant" id="size-select">
-												<option class="text-capfirst" value="" disabled {% if not selected_size %}selected{% endif %}>Choose a size</option>
+										<div class="size-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+											<span class="text-uppercase">Size:</span>
+											<div class="size-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 												{% for size_id, size_info in unique_sizes.items %}
-													<option value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size %}selected{% endif %}> 
-														{{ size_info.size.title|title }} ({{ size_info.size.code }})
-													</option>
+													<div class="size" style="display: flex; flex-direction: column; align-items: center;">
+														<input type="radio" name="size-select" id="size-select{{ size_info.size.id }}" value="{{ size_info.size.id }}"
+															{% if size_info.size.id == selected_size %}checked{% endif %}>
+														<label for="size-select{{ size_info.size.id }}" style="background-color:{{ size_info.size.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
+														<div class="variant-img" style="text-align: center;">
+															<img class="thumb" src="{{ size_info.image }}" alt="{{ size_info.size.title|title }}" width="50" style="object-fit: contain;">
+														</div>
+														<span>{{ size_info.size.title|title }} ({{ size_info.size.code }})</span>
+													</div>
 												{% endfor %}
-											</select>
+											</div>
 										</div>
-									{% endif %}
-							
-									{% if unique_colors %}
+										{% endif %}
+
+										{% if unique_colors %}
 										<!-- Color Selection -->
 										<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
 											<span class="text-uppercase">Color:</span>
 											<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 												{% for color_id, color_data in unique_colors.items %}
 													<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-														<input type="radio" name="color" id="color{{ color_data.color.id }}" value="{{ color_data.color.id }}"
+														<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}"
 															{% if color_data.color.id == selected_color %}checked{% endif %}>
-														<label for="color{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
+														<label for="color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 														<div class="variant-img" style="text-align: center;">
 															<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
 														</div>
@@ -128,8 +166,14 @@
 													</div>
 												{% endfor %}
 											</div>
-										</div> 
+										</div>
+										{% endif %}
+
+									{% else %}	
+										<!-- No variant -->
+										<p>No variant available</p>
 									{% endif %}
+								
 
 									<h3 class="product-price">
 										$ {{ product.price }}

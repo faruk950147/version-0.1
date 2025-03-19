@@ -133,6 +133,36 @@ class GetPriceByColor(generic.View):
             'status': 200,
             'messages': f'Price available for this color {selected_color_title}'
         })
+        
+    
+@method_decorator(never_cache, name='dispatch')
+class GetPriceBySize(generic.View):
+    def get(self, request):
+        size_id = request.GET.get('size_id')
+        # Check if size_id is an integer
+        try:
+            size_id = int(size_id)
+        except (ValueError, TypeError):
+            return JsonResponse({'price': None, 'status': 400, 'messages': 'Invalid size ID'})
+
+        # Get variants for the selected size
+        variants = Variants.objects.filter(size_id=size_id).select_related('size', 'color')
+
+        if not variants.exists():
+            return JsonResponse({'price': None, 'status': 404, 'messages': 'No price available for this size'})
+
+        # Get first matching variant (optimized)
+        selected_variant = variants.first()
+
+        selected_size_title = selected_variant.size.title if selected_variant else "Unknown Size"
+        selected_price = selected_variant.price if selected_variant else None
+    
+        return JsonResponse({
+            'selected_size_title': selected_size_title,
+            'selected_price': selected_price,
+            'status': 200,
+            'messages': f'Price available for this size {selected_size_title}'
+        })
  
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):

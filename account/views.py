@@ -271,7 +271,7 @@ class ChangesPasswordView(LoginRequiredMixin, generic.View):
                 return JsonResponse({'status': 400, 'messages': 'Invalid JSON format!'})
 
             except Exception as e:
-                return JsonResponse({'status': 500, 'messages': f'Something went wrong: {str(e)}'})
+                return JsonResponse({'status': 400, 'messages': f'Something went wrong: {str(e)}'})
         return render(request, 'account/changes-password.html')
   
 @method_decorator(never_cache, name='dispatch')    
