@@ -23,6 +23,30 @@
 {% block extra_scripts %}
 	<script>
 		$(document).ready(function () {
+			// First checked image set
+			function updateMainImage() {
+				let selectedColorImage = $("input[name='color-select']:checked").closest(".color").find(".variant-img img").attr("src");
+				let selectedSizeImage = $("input[name='size-select']:checked").closest(".size").find(".variant-img img").attr("src");
+
+				// Color image exists, set it, otherwise use size image
+				let selectedImage = selectedColorImage || selectedSizeImage;
+
+				if (selectedImage) {
+					$("#main-product-image").attr("src", selectedImage);
+				} else {
+					console.log("No image found!");
+				}
+			}
+
+			// First load checked image
+			updateMainImage();
+
+			// Color or Size change event
+			$(document).on("change", "input[name='color-select'], input[name='size-select']", function () {
+				updateMainImage();
+			});
+
+
 
 			function renderStars(rate) {
 				let stars = "";
