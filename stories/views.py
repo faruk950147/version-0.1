@@ -36,53 +36,81 @@ class HomeView(generic.View):
 @method_decorator(never_cache, name='dispatch')
 class SingleProductView(generic.View):
     def get(self, request, id):
-        # Get the product based on the provided id or return a 404 error if not found
         product = get_object_or_404(Product, id=id)
 
-        # Get related products from the same category, excluding the current product
         related_products = Product.objects.filter(category=product.category).exclude(id=id).select_related('category').order_by('-id')[:4]
 
-        # Get active reviews for this product
         reviews = Review.objects.filter(product=product, status=True).select_related('user')
-
-        # Count the total number of reviews for this product
         reviews_total = reviews.count()
-        # Prefetch for color and size variants to avoid unnecessary queries
-        size_variants = Variants.objects.filter(product=product, size__isnull=False).prefetch_related('size').order_by('size')
-        color_variants = Variants.objects.filter(product=product, color__isnull=False).prefetch_related('color').order_by('color')
 
-        # Get unique size variants with associated image URLs
-        unique_sizes = {variant.size.id: {'size': variant.size, 'image': variant.image if variant.image else 'default_image_url', 'price': variant.price}for variant in size_variants}
+        size_variants = Variants.objects.filter(product=product, size__isnull=False).select_related('size').order_by('size')
+        color_variants = Variants.objects.filter(product=product, color__isnull=False).select_related('color').order_by('color')
 
-        # Get unique color variants with associated image URLs
-        unique_colors = {variant.color.id: {'color': variant.color, 'image': variant.image if variant.image else 'default_image_url', 'price': variant.price} for variant in color_variants}
+        unique_sizes = {
+            variant.size.id: {
+                'size': variant.size,
+                'image': variant.image if variant.image else 'default_image_url',
+                'price': variant.price
+            } for variant in size_variants
+        }
+
+        unique_colors = {
+            variant.color.id: {
+                'color': variant.color,
+                'image': variant.image if variant.image else 'default_image_url',
+                'price': variant.price
+            } for variant in color_variants
+        }
+
+        first_size_variant = size_variants.first()
+        first_color_variant = color_variants.first()
+
+        selected_size_title = first_size_variant.size.title if first_size_variant else "Unknown Size"
+        selected_color_title = first_color_variant.color.title if first_color_variant else "Unknown Color"
+
+        # Correct price selection logic
+        selected_price = None
+        if first_color_variant:
+            selected_price = first_color_variant.price
+        elif first_size_variant:
+            selected_price = first_size_variant.price
+        else:
+            selected_price = product.price
+
+        selected_image_size = first_size_variant.image if first_size_variant else 'default_image_url'
+        selected_image_color = first_color_variant.image if first_color_variant else 'default_image_url'
 
         context = {
-            'product': product,  
-            'related_products': related_products,  
-            'reviews': reviews,  
-            'reviews_total': reviews_total,  
-            'unique_sizes': unique_sizes,  
+            'product': product,
+            'related_products': related_products,
+            'reviews': reviews,
+            'reviews_total': reviews_total,
+            'unique_sizes': unique_sizes,
             'unique_colors': unique_colors,
+            'selected_size_title': selected_size_title,
+            'selected_color_title': selected_color_title,
+            'selected_price': selected_price,
+            'selected_image_size': selected_image_size,
+            'selected_image_color': selected_image_color,
         }
         return render(request, 'stories/single.html', context)
 
 class GetColorsBySize(generic.View):
     def get(self, request):
         size_id = request.GET.get('size_id')
-        # Check if size_id is an integer
+        product_id = request.GET.get('product_id')
+
         try:
             size_id = int(size_id)
+            product_id = int(product_id)
         except (ValueError, TypeError):
-            return JsonResponse({'colors': [], 'status': 400, 'messages': 'Invalid size ID'})
+            return JsonResponse({'colors': [], 'status': 400, 'messages': 'Invalid size ID or product ID'})
 
-        # Get variants for the selected size
-        variants = Variants.objects.filter(size_id=size_id).select_related('size', 'color')
+        variants = Variants.objects.filter(product_id=product_id, size_id=size_id).select_related('size', 'color')
 
         if not variants.exists():
             return JsonResponse({'colors': [], 'status': 404, 'messages': 'No colors available for this size'})
 
-        # Get first matching variant (optimized)
         selected_variant = variants.first()
         selected_size_title = selected_variant.size.title if selected_variant else "Unknown Size"
         selected_price = selected_variant.price if selected_variant else None
@@ -103,57 +131,56 @@ class GetColorsBySize(generic.View):
             'selected_size_title': selected_size_title,
             'selected_price': selected_price,
             'status': 200,
-            'messages': f'Colors available for this size {selected_size_title}'})
+            'messages': f'Colors available for size {selected_size_title}'})
    
 @method_decorator(never_cache, name='dispatch')
 class GetPriceByColor(generic.View):
     def get(self, request):
         color_id = request.GET.get('color_id')
-        # Check if color_id is an integer
+        product_id = request.GET.get('product_id')
+        print('color_id', color_id, 'product_id', product_id)
         try:
             color_id = int(color_id)
+            product_id = int(product_id)
         except (ValueError, TypeError):
-            return JsonResponse({'price': None, 'status': 400, 'messages': 'Invalid color ID'})
+            return JsonResponse({'price': None, 'status': 400, 'messages': 'Invalid color ID or product ID'})
 
-        # Get variants for the selected color
-        variants = Variants.objects.filter(color_id=color_id).select_related('color', 'size')
+        variants = Variants.objects.filter(product_id=product_id, color_id=color_id).select_related('color', 'size')
 
         if not variants.exists():
             return JsonResponse({'price': None, 'status': 404, 'messages': 'No price available for this color'})
 
-        # Get first matching variant (optimized)
         selected_variant = variants.first()
-
         selected_color_title = selected_variant.color.title if selected_variant else "Unknown Color"
         selected_price = selected_variant.price if selected_variant else None
+        selected_size_title = selected_variant.size.title if selected_variant.size else "Unknown Size"  # ✅ Size যোগ করা হলো
     
         return JsonResponse({
             'selected_color_title': selected_color_title,
+            'selected_size_title': selected_size_title,  # ✅ Include size
             'selected_price': selected_price,
             'status': 200,
-            'messages': f'Price available for this color {selected_color_title}'
+            'messages': f'Price available for color {selected_color_title}'
         })
-        
-    
+     
 @method_decorator(never_cache, name='dispatch')
 class GetPriceBySize(generic.View):
     def get(self, request):
         size_id = request.GET.get('size_id')
-        # Check if size_id is an integer
+        product_id = request.GET.get('product_id')
+
         try:
             size_id = int(size_id)
+            product_id = int(product_id)
         except (ValueError, TypeError):
-            return JsonResponse({'price': None, 'status': 400, 'messages': 'Invalid size ID'})
+            return JsonResponse({'price': None, 'status': 400, 'messages': 'Invalid size ID or product ID'})
 
-        # Get variants for the selected size
-        variants = Variants.objects.filter(size_id=size_id).select_related('size', 'color')
+        variants = Variants.objects.filter(product_id=product_id, size_id=size_id).select_related('size', 'color')
 
         if not variants.exists():
             return JsonResponse({'price': None, 'status': 404, 'messages': 'No price available for this size'})
 
-        # Get first matching variant (optimized)
         selected_variant = variants.first()
-
         selected_size_title = selected_variant.size.title if selected_variant else "Unknown Size"
         selected_price = selected_variant.price if selected_variant else None
     
@@ -161,9 +188,9 @@ class GetPriceBySize(generic.View):
             'selected_size_title': selected_size_title,
             'selected_price': selected_price,
             'status': 200,
-            'messages': f'Price available for this size {selected_size_title}'
+            'messages': f'Price available for size {selected_size_title}'
         })
- 
+
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')

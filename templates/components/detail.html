@@ -9,7 +9,7 @@
 				<div class="product product-details clearfix">
 					<div class="col-md-6">
 
-						<input type="hidden" name="productid" id="productid" value="{{ product.id }}">
+						<input type="hidden" name="product_id" id="product_id" value="{{ product.id }}">
 						<div id="product-main-view">
 							<div class="product-view" style="width: 400px; height: 450px;">
 								{% if product.products_images.first.image %}
@@ -86,9 +86,9 @@
 							<p>Brand: {{product.brand.title|title}}</p>
 							<p>Model: {{product.model|title}}</p>
 							<p>Keyword: {{product.keyword|title}}</p>
-							<p class="selected-size">Selected Size: </p>
-							<p class="selected-color">Selected Color: </p>
-							<p class="selected-price">Selected Price: </p>
+							<p class="selected-size">Selected Size: {{selected_size_title}}</p>
+							<p class="selected-color">Selected Color: {{selected_color_title}}</p>
+							<p class="selected-price">Selected Price: {{selected_price}}</p>
 
 							<div class="product-options">
 								<form action="" method="POST" id="addToChartForm">

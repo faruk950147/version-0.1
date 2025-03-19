@@ -140,14 +140,14 @@
 
 			// Listen for changes in the size selection
 			$(document).on("change", "#size-select", function() {
-				let selectedSize = $(this).val();
-				if(selectedSize.length) {
+				let size_id = $(this).val();
+				let product_id = $("#product_id").val();
+
+				if(size_id.length > 0 && product_id.length > 0) {
 					$.ajax({
 						url: "{% url 'getcolorsbysize' %}",
 						method: "GET",
-						data: {
-							'size_id': selectedSize
-						},
+						data: {'size_id': size_id, 'product_id': product_id},
 						success: function(res){
 							if(res.status == 200){
 								var colorHtml = "";
@@ -180,38 +180,38 @@
 
 			// Listen for changes in the color selection
 			$(document).on("change", "input[name='color-select']", function() {
-				let selectedColor = $(this).val();
-				if(selectedColor.length) {
+				let color_id = $(this).val();
+				let product_id = $('#product_id').val();
+				
+				if(color_id.length > 0 && product_id.length > 0) {
 					$.ajax({
 						url: "{% url 'getpricebycolor' %}",
 						method: "GET",
-						data: {
-							'color_id': selectedColor
-						},
-						success: function(res){
-							if(res.status == 200){
-								$(".selected-color").text("Selected Color: " + res.selected_color_title);
-								$(".selected-price").text("Selected Price: $ " + res.selected_price);
-								$(".selected-size").html("<del>" + res.selected_size_title + "</del>");
-							} else if(res.status == 400){
-								errorHtml = "<p style='color:red;'>No price available for this color.</p>";
-								$(".selected-color").text("");
-								$(".selected-price").text("");
-								$(".color-variant").html(errorHtml);
+						data: { 'color_id': color_id, 'product_id': product_id },
+						success: function(res) {
+							if (res.status === 200) {
+								$('.selected-color').text('Selected Color: ' + res.selected_color_title);
+								$('.selected-size').text('Selected Size: ' + res.selected_size_title);  
+								$('.selected-price').text('Price: ' + res.selected_price + ' TK');
+							} else {
+								console.log(response.messages);
 							}
 						}
 					});
 				}
 			});
 
+
 			$(document).on("change", "input[name='size-select']", function() {
-				let selectedSize = $(this).val();
-				if(selectedSize.length) {
+				let size_id = $(this).val();
+				let product_id = $("#product_id").val();
+				if(size_id.length > 0 && product_id.length > 0) {
 					$.ajax({
 						url: "{% url 'getpricebysize' %}",
 						method: "GET",
 						data: {
-							'size_id': selectedSize
+							'size_id': size_id,
+							'product_id': product_id
 						},
 						success: function(res){
 							if(res.status == 200){
@@ -227,7 +227,6 @@
 					});
 				}
 			});
-
 		});
 	</script>
 {% endblock extra_scripts %}	
