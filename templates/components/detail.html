@@ -86,8 +86,8 @@
 							<p>Brand: {{product.brand.title|title}}</p>
 							<p>Model: {{product.model|title}}</p>
 							<p>Keyword: {{product.keyword|title}}</p>
-							<p class="selected-size">Selected Size: {{selected_size_title}}</p>
-							<p class="selected-color">Selected Color: {{selected_color_title}}</p>
+							<p class="selected-size">Selected Size: {{selected_size_title}} ({{selected_size_id	}})</p>
+							<p class="selected-color">Selected Color: {{selected_color_title}} ({{selected_color_id}})</p>
 							<p class="selected-price">Selected Price: {{selected_price}}</p>
 
 							<div class="product-options">
@@ -100,9 +100,9 @@
 											<div class="size-option" style="margin-bottom: 20px;">
 												<label for="size-select" class="text-uppercase">Size:</label>
 												<select class="size-variant" id="size-select">
-													<option class="text-capitalize" value="" {% if not selected_size %}selected{% endif %}>Choose a size</option>
+													<option class="text-capitalize" value="" {% if not selected_size_id %}selected{% endif %}>Choose a size</option>
 													{% for size_id, size_info in unique_sizes.items %}
-														<option value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size %}selected{% endif %}> 
+														<option value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size_id %}selected{% endif %}> 
 															{{ size_info.size.title|title }} ({{ size_info.size.code }})
 														</option>
 													{% endfor %}
@@ -114,7 +114,7 @@
 												<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 													{% for color_id, color_data in unique_colors.items %}
 														<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if color_data.color.id == selected_color or not selected_color %}checked{% endif %}>
+															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if color_data.color.id == selected_color_id or not selected_color_id %}checked{% endif %}>
 															<label for="color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 															<div class="variant-img" style="text-align: center;">
 																<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
@@ -133,7 +133,7 @@
 												<div class="size-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 													{% for size_id, size_info in unique_sizes.items %}
 														<div class="size" style="display: flex; flex-direction: column; align-items: center;">
-															<input type="radio" name="size-select" id="size-select{{ size_info.size.id }}" value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size or not selected_size %}checked{% endif %}>
+															<input type="radio" name="size-select" id="size-select{{ size_info.size.id }}" value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size_id or not selected_size_id %}checked{% endif %}>
 															<label for="size-select{{ size_info.size.id }}" style="background-color:{{ size_info.size.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 															<div class="variant-img" style="text-align: center;">
 																<img class="thumb" src="{{ size_info.image }}" alt="{{ size_info.size.title|title }}" width="50" style="object-fit: contain;">
@@ -152,7 +152,7 @@
 												<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 													{% for color_id, color_data in unique_colors.items %}
 														<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if color_data.color.id == selected_color or not selected_color %}checked{% endif %}>
+															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if color_data.color.id == selected_color_id or not selected_color_id %}checked{% endif %}>
 															<label for="color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 															<div class="variant-img" style="text-align: center;">
 																<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
@@ -169,7 +169,7 @@
 									{% endif %}
 								
 									<h3 class="product-price">
-										$ {{ product.price }}
+										{% if selected_price %}$ {{ selected_price }}{% else %}$ {{ product.price }}{% endif %}
 
 										{% if product.old_price %}
 											<del class="product-old-price">$ {{ product.old_price }}</del>

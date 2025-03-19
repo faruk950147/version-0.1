@@ -46,27 +46,17 @@ class SingleProductView(generic.View):
         size_variants = Variants.objects.filter(product=product, size__isnull=False).select_related('size').order_by('size')
         color_variants = Variants.objects.filter(product=product, color__isnull=False).select_related('color').order_by('color')
 
-        unique_sizes = {
-            variant.size.id: {
-                'size': variant.size,
-                'image': variant.image if variant.image else 'default_image_url',
-                'price': variant.price
-            } for variant in size_variants
-        }
+        unique_sizes = {variant.size.id: {'size': variant.size, 'image': variant.image if variant.image else 'default_image_url', 'price': variant.price} for variant in size_variants}
 
-        unique_colors = {
-            variant.color.id: {
-                'color': variant.color,
-                'image': variant.image if variant.image else 'default_image_url',
-                'price': variant.price
-            } for variant in color_variants
-        }
+        unique_colors = {variant.color.id: {'color': variant.color, 'image': variant.image if variant.image else 'default_image_url', 'price': variant.price} for variant in color_variants}
 
         first_size_variant = size_variants.first()
         first_color_variant = color_variants.first()
 
         selected_size_title = first_size_variant.size.title if first_size_variant else "Unknown Size"
         selected_color_title = first_color_variant.color.title if first_color_variant else "Unknown Color"
+        selected_size_id = first_size_variant.size.id if first_size_variant else None
+        selected_color_id = first_color_variant.color.id if first_color_variant else None
 
         # Correct price selection logic
         selected_price = None
@@ -76,9 +66,6 @@ class SingleProductView(generic.View):
             selected_price = first_size_variant.price
         else:
             selected_price = product.price
-
-        selected_image_size = first_size_variant.image if first_size_variant else 'default_image_url'
-        selected_image_color = first_color_variant.image if first_color_variant else 'default_image_url'
 
         context = {
             'product': product,
@@ -90,8 +77,8 @@ class SingleProductView(generic.View):
             'selected_size_title': selected_size_title,
             'selected_color_title': selected_color_title,
             'selected_price': selected_price,
-            'selected_image_size': selected_image_size,
-            'selected_image_color': selected_image_color,
+            'selected_size_id': selected_size_id,
+            'selected_color_id': selected_color_id,
         }
         return render(request, 'stories/single.html', context)
 
