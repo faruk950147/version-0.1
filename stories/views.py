@@ -35,7 +35,7 @@ class HomeView(generic.View):
 
 class SingleProductView(generic.View):
     def get(self, request, id):
-        product = get_object_or_404(Product, id=id)
+        product = get_object_or_404(Product.objects.prefetch_related('product_variants'), id=id)
 
         # Related products (same category but excluding the current product)
         related_products = Product.objects.filter(category=product.category).exclude(id=product.id).select_related('category').prefetch_related('product_variants__color', 'product_variants__size').order_by('-id')[:4]
@@ -44,21 +44,24 @@ class SingleProductView(generic.View):
         reviews = Review.objects.filter(product=product, status=True).select_related('user').prefetch_related('product')
         reviews_total = reviews.count()
 
-        # Use prefetch_related for better performance with many-to-many relations
-        size_variants = Variants.objects.filter(product=product, size__isnull=False).prefetch_related('size').order_by('size')
-        color_variants = Variants.objects.filter(product=product, color__isnull=False).prefetch_related('color').order_by('color')
+        # Prefetch related Variants
+        variants = Variants.objects.filter(product=product).select_related('size', 'color')
 
-        unique_sizes = {variant.size.id: {'size': variant.size, 'image': variant.image if variant.image else 'default_image_url', 'price': variant.price} for variant in size_variants}
+        size_variants = variants.filter(size__isnull=False).order_by('size')
+        color_variants = variants.filter(color__isnull=False).order_by('color')
 
-        unique_colors = {variant.color.id: {'color': variant.color, 'image': variant.image if variant.image else 'default_image_url', 'price': variant.price} for variant in color_variants}
+        def get_default_image(variant):
+            return variant.image if variant.image else 'default_image_url'
+
+        unique_sizes = {variant.size.id: {'size': variant.size, 'image': get_default_image(variant), 'price': variant.price} for variant in size_variants}
+
+        unique_colors = {variant.color.id: {'color': variant.color, 'image': get_default_image(variant), 'price': variant.price} for variant in color_variants}
 
         first_size_variant = size_variants.first()
         first_color_variant = color_variants.first()
 
         selected_size_title = first_size_variant.size.title if first_size_variant else "Unknown Size"
         selected_color_title = first_color_variant.color.title if first_color_variant else "Unknown Color"
-        selected_size_id = first_size_variant.size.id if first_size_variant else None
-        selected_color_id = first_color_variant.color.id if first_color_variant else None
 
         context = {
             'product': product,
@@ -69,8 +72,6 @@ class SingleProductView(generic.View):
             'unique_colors': unique_colors,
             'selected_size_title': selected_size_title,
             'selected_color_title': selected_color_title,
-            'selected_size_id': selected_size_id,
-            'selected_color_id': selected_color_id,
         }
         return render(request, 'stories/single.html', context)
 

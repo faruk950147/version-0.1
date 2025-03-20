@@ -105,9 +105,9 @@
 												<div class="size-variant">
 													<label for="size-select" class="text-uppercase">Size:</label>
 													<select class="size-select" id="size-select">
-														<option class="text-capitalize" value="" {% if not selected_size_id %}selected{% endif %}>Choose a size</option>
+														<option value="" selected>Choose a size</option>
 														{% for size_id, size_info in unique_sizes.items %}
-															<option value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size_id %}selected{% endif %}> 
+															<option value="{{ size_info.size.id }}" {% if forloop.first %}selected{% endif %}>
 																{{ size_info.size.title|title }} ({{ size_info.size.code }})
 															</option>
 														{% endfor %}
@@ -120,7 +120,7 @@
 												<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 													{% for color_id, color_data in unique_colors.items %}
 														<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if color_data.color.id == selected_color_id or not selected_color_id %}checked{% endif %}>
+															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if forloop.first %}checked{% endif %}>
 															<label for="color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 															<div class="variant-img" style="text-align: center;">
 																<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
@@ -139,7 +139,7 @@
 												<div class="size-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 													{% for size_id, size_info in unique_sizes.items %}
 														<div class="size" style="display: flex; flex-direction: column; align-items: center;">
-															<input type="radio" name="size-select" id="size-select{{ size_info.size.id }}" value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size_id or not selected_size_id %}checked{% endif %}>
+															<input type="radio" name="size-select" id="size-select{{ size_info.size.id }}" value="{{ size_info.size.id }}" {% if forloop.first %}checked{% endif %}>
 															<label for="size-select{{ size_info.size.id }}" style="background-color:{{ size_info.size.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 															<div class="variant-img" style="text-align: center;">
 																<img class="thumb" src="{{ size_info.image }}" alt="{{ size_info.size.title|title }}" width="50" style="object-fit: contain;">
@@ -158,7 +158,7 @@
 												<div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
 													{% for color_id, color_data in unique_colors.items %}
 														<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if color_data.color.id == selected_color_id or not selected_color_id %}checked{% endif %}>
+															<input type="radio" name="color-select" id="color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if forloop.first %}checked{% endif %}>
 															<label for="color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 															<div class="variant-img" style="text-align: center;">
 																<img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
@@ -169,6 +169,7 @@
 												</div>
 											</div>
 										{% endif %}
+									
 									{% else %}    
 										<!-- No variant -->
 										<p>No variant available</p>
