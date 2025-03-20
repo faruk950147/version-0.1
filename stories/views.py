@@ -33,7 +33,6 @@ class HomeView(generic.View):
         }
         return render(request, 'stories/home.html', context)
 
-@method_decorator(never_cache, name='dispatch')
 class SingleProductView(generic.View):
     def get(self, request, id):
         product = get_object_or_404(Product, id=id)
@@ -43,8 +42,9 @@ class SingleProductView(generic.View):
         reviews = Review.objects.filter(product=product, status=True).select_related('user')
         reviews_total = reviews.count()
 
-        size_variants = Variants.objects.filter(product=product, size__isnull=False).select_related('size').order_by('size')
-        color_variants = Variants.objects.filter(product=product, color__isnull=False).select_related('color').order_by('color')
+        # Use prefetch_related for better performance with many-to-many relations
+        size_variants = Variants.objects.filter(product=product, size__isnull=False).prefetch_related('size').order_by('size')
+        color_variants = Variants.objects.filter(product=product, color__isnull=False).prefetch_related('color').order_by('color')
 
         unique_sizes = {variant.size.id: {'size': variant.size, 'image': variant.image if variant.image else 'default_image_url', 'price': variant.price} for variant in size_variants}
 
@@ -58,15 +58,6 @@ class SingleProductView(generic.View):
         selected_size_id = first_size_variant.size.id if first_size_variant else None
         selected_color_id = first_color_variant.color.id if first_color_variant else None
 
-        # Correct price selection logic
-        selected_price = None
-        if first_color_variant:
-            selected_price = first_color_variant.price
-        elif first_size_variant:
-            selected_price = first_size_variant.price
-        else:
-            selected_price = product.price
-
         context = {
             'product': product,
             'related_products': related_products,
@@ -76,7 +67,6 @@ class SingleProductView(generic.View):
             'unique_colors': unique_colors,
             'selected_size_title': selected_size_title,
             'selected_color_title': selected_color_title,
-            'selected_price': selected_price,
             'selected_size_id': selected_size_id,
             'selected_color_id': selected_color_id,
         }
@@ -118,14 +108,15 @@ class GetColorsBySize(generic.View):
             'selected_size_title': selected_size_title,
             'selected_price': selected_price,
             'status': 200,
-            'messages': f'Colors available for size {selected_size_title}'})
-   
+            'messages': f'Colors available for size {selected_size_title}'
+        })
+
 @method_decorator(never_cache, name='dispatch')
 class GetPriceByColor(generic.View):
     def get(self, request):
         color_id = request.GET.get('color_id')
         product_id = request.GET.get('product_id')
-        print('color_id', color_id, 'product_id', product_id)
+
         try:
             color_id = int(color_id)
             product_id = int(product_id)
@@ -140,16 +131,16 @@ class GetPriceByColor(generic.View):
         selected_variant = variants.first()
         selected_color_title = selected_variant.color.title if selected_variant else "Unknown Color"
         selected_price = selected_variant.price if selected_variant else None
-        selected_size_title = selected_variant.size.title if selected_variant.size else "Unknown Size"  # ✅ Size যোগ করা হলো
+        selected_size_title = selected_variant.size.title if selected_variant.size else "Unknown Size"
     
         return JsonResponse({
             'selected_color_title': selected_color_title,
-            'selected_size_title': selected_size_title,  # ✅ Include size
+            'selected_size_title': selected_size_title,
             'selected_price': selected_price,
             'status': 200,
             'messages': f'Price available for color {selected_color_title}'
         })
-     
+
 @method_decorator(never_cache, name='dispatch')
 class GetPriceBySize(generic.View):
     def get(self, request):

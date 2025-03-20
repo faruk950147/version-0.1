@@ -56,6 +56,7 @@
 
 					</div>
 					<div class="col-md-6">
+
 						<div class="product-body">
 							{% if product.discount %}
 							<div class="product-label">
@@ -88,7 +89,10 @@
 							<p>Keyword: {{product.keyword|title}}</p>
 							<p class="selected-size">Selected Size: {{selected_size_title}}</p>
 							<p class="selected-color">Selected Color: {{selected_color_title}}</p>
-							<p class="selected-price">Selected Price: {{selected_price|default:product.price}}</p>
+							<p class="selected-price">
+								Selected Price: $ {% if product.product_variants.first %}{{ product.product_variants.first.price }}{% else %}{{ product.price }}{% endif %}
+							</p>
+							
 
 							<div class="product-options">
 								<form action="" method="POST" id="addToChartForm">
@@ -172,7 +176,11 @@
 
 									<div class="product-price-wrapper" style="display:flex; align-items: center; gap: 10px;">
 										<h3 class="product-price">
-											{% if selected_price %}$ {{ selected_price }}{% else %}$ {{ product.price }}{% endif %}
+											{% if product.product_variants.exists %}
+												$ {{ product.product_variants.first.price }}
+											{% else %}
+												$ {{ product.price }}
+											{% endif %}
 										</h3>
 										{% if product.old_price %}
 											<h3 class="product-old-price" style="text-decoration: line-through; font-size: 20px;" >
