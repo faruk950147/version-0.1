@@ -86,9 +86,9 @@
 							<p>Brand: {{product.brand.title|title}}</p>
 							<p>Model: {{product.model|title}}</p>
 							<p>Keyword: {{product.keyword|title}}</p>
-							<p class="selected-size">Selected Size: {{selected_size_title}} ({{selected_size_id	}})</p>
-							<p class="selected-color">Selected Color: {{selected_color_title}} ({{selected_color_id}})</p>
-							<p class="selected-price">Selected Price: {{selected_price}}</p>
+							<p class="selected-size">Selected Size: {{selected_size_title}}</p>
+							<p class="selected-color">Selected Color: {{selected_color_title}}</p>
+							<p class="selected-price">Selected Price: {{selected_price|default:product.price}}</p>
 
 							<div class="product-options">
 								<form action="" method="POST" id="addToChartForm">
@@ -98,15 +98,17 @@
 										{% if unique_sizes and unique_colors %}
 											<!-- Size Selection -->
 											<div class="size-option" style="margin-bottom: 20px;">
-												<label for="size-select" class="text-uppercase">Size:</label>
-												<select class="size-select" id="size-select">
-													<option class="text-capitalize" value="" {% if not selected_size_id %}selected{% endif %}>Choose a size</option>
-													{% for size_id, size_info in unique_sizes.items %}
-														<option value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size_id %}selected{% endif %}> 
-															{{ size_info.size.title|title }} ({{ size_info.size.code }})
-														</option>
-													{% endfor %}
-												</select>
+												<div class="size-variant">
+													<label for="size-select" class="text-uppercase">Size:</label>
+													<select class="size-select" id="size-select">
+														<option class="text-capitalize" value="" {% if not selected_size_id %}selected{% endif %}>Choose a size</option>
+														{% for size_id, size_info in unique_sizes.items %}
+															<option value="{{ size_info.size.id }}" {% if size_info.size.id == selected_size_id %}selected{% endif %}> 
+																{{ size_info.size.title|title }} ({{ size_info.size.code }})
+															</option>
+														{% endfor %}
+													</select>
+												</div>
 											</div>
 											<!-- Color Selection -->
 											<div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
@@ -167,14 +169,18 @@
 										<!-- No variant -->
 										<p>No variant available</p>
 									{% endif %}
-								
-									<h3 class="product-price">
-										{% if selected_price %}$ {{ selected_price }}{% else %}$ {{ product.price }}{% endif %}
 
+									<div class="product-price-wrapper" style="display:flex; align-items: center; gap: 10px;">
+										<h3 class="product-price">
+											{% if selected_price %}$ {{ selected_price }}{% else %}$ {{ product.price }}{% endif %}
+										</h3>
 										{% if product.old_price %}
-											<del class="product-old-price">$ {{ product.old_price }}</del>
+											<h3 class="product-old-price" style="text-decoration: line-through; font-size: 20px;" >
+												<del>$ {{ product.old_price }}</del>
+											</h3>
 										{% endif %}
-									</h3>
+									</div>
+								
 									<div class="qty-input" style="margin-top: 15px;">
 										<span class="text-uppercase">QTY: </span>
 										<input class="input" name="quantity" type="number" value="1" min="1" max="{{ product.in_stock_max }}">

@@ -167,6 +167,7 @@
 								// Update the color options
 								$(".selected-size").text("Selected Size: " + res.selected_size_title);
 								$(".selected-price").text("Selected Price: $ " + res.selected_price);
+								$(".product-price").text("$ " + res.selected_price);
 								$(".color-variant").html(colorHtml);
 								alertify.success(res.messages);
 							} else if(res.status == 400){
@@ -192,7 +193,8 @@
 							if (res.status === 200) {
 								$('.selected-color').text('Selected Color: ' + res.selected_color_title);
 								$('.selected-size').text('Selected Size: ' + res.selected_size_title);  
-								$('.selected-price').text('Price: ' + res.selected_price + ' TK');
+								$('.selected-price').text('Selected Price: ' + res.selected_price);
+								$('.product-price').text("$ " + res.selected_price);
 							} else {
 								console.log(response.messages);
 							}
@@ -217,11 +219,12 @@
 							if(res.status == 200){
 								$(".selected-size").text("Selected Size: " + res.selected_size_title);
 								$(".selected-price").text("Selected Price: $ " + res.selected_price);
+								$('.product-price').text("$ " + res.selected_price);
 							} else if(res.status == 400){
 								errorHtml = "<p style='color:red;'>No price available for this size.</p>";
 								$(".selected-size").text("");
 								$(".selected-price").text("");
-								$(".color-variant").html(errorHtml);
+								$(".size-variant").html(errorHtml);
 							}
 						}
 					});
