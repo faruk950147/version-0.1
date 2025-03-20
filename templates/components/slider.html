@@ -23,9 +23,12 @@
 							{% endif %}
 							<h3 class="white-color">{{slider.product.title|title}}</h3>
 							<h3 class="product-price white-color"> 	
-								{% if slider.product.price %}									
-								$ {{slider.product.price|title}} 
+								{% if slider.product.product_variants.first %}									
+								$ {{slider.product.product_variants.first.price|title}} 
 								{% else %}
+								$ {{slider.product.price|title}}									
+								{% endif %}
+								{% if slider.product.old_price %}
 								<del class="product-old-price">$ {{slider.product.old_price|title}}</del>									
 								{% endif %}
 							</h3>

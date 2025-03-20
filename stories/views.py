@@ -20,16 +20,16 @@ from stories.models import (
 class HomeView(generic.View):
     def get(self, request):
         context = {
-            'sliders': Slider.objects.filter(status=True).order_by('id'),
-            'banners': Banner.objects.filter(status=True).order_by('id')[:3],
-            'side_deals_banners': Banner.objects.filter(status=True, side_deals=True, side_deals_is_active=True).order_by('id')[:1],
-            'deals_products': Product.objects.filter(offers_deadline__isnull=False,  is_timeline=True, deals=True, status=True).order_by("id")[:6],
+            'sliders': Slider.objects.filter(status=True).select_related('product').prefetch_related('product__product_variants').order_by('id'),
+            'banners': Banner.objects.filter(status=True).select_related('product').prefetch_related('product__product_variants').order_by('id')[:3],
+            'side_deals_banners': Banner.objects.filter(status=True, side_deals=True, side_deals_is_active=True).select_related('product').prefetch_related('product__product_variants').order_by('id')[:1],
+            'deals_products': Product.objects.filter(offers_deadline__isnull=False,  is_timeline=True, deals=True, status=True).select_related('category', 'brand').prefetch_related('product_variants').order_by("id")[:6],
             'current_time': timezone.now(),
-            'new_collections': Product.objects.filter(status=True, new_collection=True).order_by('id')[:4], 
-            'girls_collections': Product.objects.filter(status=True, girls_collection=True).order_by('id')[:4],
-            'men_collections': Product.objects.filter(status=True, men_collection=True).order_by('id')[:4],
-            'latest_collections': Product.objects.filter(status=True, latest_collection=True).order_by('id')[:4],
-            'pick_collections': Product.objects.filter(status=True, pick_collection=True).order_by('id')[:4],  
+            'new_collections': Product.objects.filter(status=True, new_collection=True).select_related('category', 'brand').prefetch_related('product_variants__color', 'product_variants__size').order_by('id')[:4],
+            'girls_collections': Product.objects.filter(status=True, girls_collection=True).select_related('category', 'brand').prefetch_related('product_variants__color', 'product_variants__size').order_by('id')[:4],
+            'men_collections': Product.objects.filter(status=True, men_collection=True).select_related('category', 'brand').prefetch_related('product_variants__color', 'product_variants__size').order_by('id')[:4],
+            'latest_collections': Product.objects.filter(status=True, latest_collection=True).select_related('category', 'brand').prefetch_related('product_variants__color', 'product_variants__size').order_by('id')[:4],
+            'pick_collections': Product.objects.filter(status=True, pick_collection=True).select_related('category', 'brand').prefetch_related('product_variants__color', 'product_variants__size').order_by('id')[:4],   
         }
         return render(request, 'stories/home.html', context)
 
@@ -37,9 +37,11 @@ class SingleProductView(generic.View):
     def get(self, request, id):
         product = get_object_or_404(Product, id=id)
 
-        related_products = Product.objects.filter(category=product.category).exclude(id=id).select_related('category').order_by('-id')[:4]
+        # Related products (same category but excluding the current product)
+        related_products = Product.objects.filter(category=product.category).exclude(id=product.id).select_related('category').prefetch_related('product_variants__color', 'product_variants__size').order_by('-id')[:4]
 
-        reviews = Review.objects.filter(product=product, status=True).select_related('user')
+        # Reviews for the current product with user details
+        reviews = Review.objects.filter(product=product, status=True).select_related('user').prefetch_related('product')
         reviews_total = reviews.count()
 
         # Use prefetch_related for better performance with many-to-many relations

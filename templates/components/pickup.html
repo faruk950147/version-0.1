@@ -36,11 +36,15 @@
 							{% endif %}
 						</div>
 						<div class="product-body">
-							<h3 class="product-price"> 										
-							$ {{pick_collection.price|title}} 
-							{% if pick_collection.old_price %}
-							<del class="product-old-price">$ {{pick_collection.old_price|title}}</del>									
-							{% endif %}
+							<h3 class="product-price">
+								{% if pick_collection.product_variants.first %}
+								$ {{ pick_collection.product_variants.first.price }}
+								{% else %}
+								$ {{ pick_collection.price }}
+								{% endif %}
+								{% if pick_collection.old_price %}
+								<del class="product-old-price">$ {{pick_collection.old_price|title}}</del>									
+								{% endif %}
 							</h3>
 							<div class="product-rating ">
 								<i class="fa fa-star{% if pick_collection.average_review < 1%}-o empty{% endif%}"></i>
