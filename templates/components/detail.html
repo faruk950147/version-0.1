@@ -176,6 +176,17 @@
                                     <p>No variant available</p>
                                 {% endif %}
 
+                                <div class="product-price" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
+                                    {% if product.product_variants.first %}
+                                        <h3 class="product-price selected-price-main">$ {{ product.product_variants.first.price }}</h3>
+                                    {% else %}
+                                        <h3 class="product-price">$ {{ product.price }}</h3>
+                                    {% endif %}
+                                    {% if product.old_price %}
+                                        <h3 class="product-price"> <del class="product-old-price">$ {{ product.old_price }}</del> </h3>
+                                    {% endif %}
+                                </div>
+
                                 <div class="qty-input" style="margin-top: 15px;">
                                     <span class="text-uppercase">QTY: </span>
                                     <input class="input" name="quantity" type="number" value="1" min="1"
