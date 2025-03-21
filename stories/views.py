@@ -59,10 +59,16 @@ class SingleProductView(generic.View):
         # Safely get first size and color variant
         first_size_variant = size_variants.first()
         first_color_variant = color_variants.first()
+  
+        # Use conditional expression to set ids more cleanly
+        selected_size_id = first_size_variant.size_id if first_size_variant and first_size_variant.size else None
+        selected_color_id = first_color_variant.color_id if first_color_variant and first_color_variant.color else None
 
         # Get size and color title with a fallback for None values
         selected_size_title = first_size_variant.size.title if first_size_variant and first_size_variant.size else "Unknown Size"
         selected_color_title = first_color_variant.color.title if first_color_variant and first_color_variant.color else "Unknown Color"
+        selected_price = first_size_variant.price if first_size_variant else None
+        
 
         context = {
             'product': product,
@@ -73,6 +79,9 @@ class SingleProductView(generic.View):
             'unique_colors': unique_colors,
             'selected_size_title': selected_size_title,
             'selected_color_title': selected_color_title,
+            'selected_price': selected_price,
+            'selected_size_id': selected_size_id,
+            'selected_color_id': selected_color_id,
         }
         return render(request, 'stories/single.html', context) 
     

@@ -37,7 +37,7 @@
 						</div>
 						<div class="product-body">
 							<h3 class="product-price"> 										
-							{% if men_collection.product_variants.first %}
+							{% if men_collection.product_variants.exists %}
 							$ {{ men_collection.product_variants.first.price }}
 							{% else %}
 							$ {{ men_collection.price }}

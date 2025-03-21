@@ -23,7 +23,7 @@
 							{% endif %}
 							<h3 class="white-color">{{slider.product.title|title}}</h3>
 							<h3 class="product-price white-color"> 	
-								{% if slider.product.product_variants.first %}									
+								{% if slider.product.product_variants.exists %}									
 								$ {{slider.product.product_variants.first.price|title}} 
 								{% else %}
 								$ {{slider.product.price|title}}									

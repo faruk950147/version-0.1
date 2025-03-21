@@ -90,7 +90,14 @@
                         <p class="selected-size">Selected Size: {{selected_size_title}}</p>
                         <p class="selected-color">Selected Color: {{selected_color_title}}</p>
                         <p class="selected-price">
-                            Selected Price: $ {% if product.product_variants.first %}{{ product.product_variants.first.price }}{% else %}{{ product.price }}{% endif %}
+                            Selected Price: 
+                            $ {% if selected_price %}
+                                {{ selected_price }}
+                            {% elif product.product_variants.exists %}
+                                {{ product.product_variants.first.price }}
+                            {% else %}
+                                {{ product.price }}
+                            {% endif %}
                         </p>
                         
 
@@ -108,7 +115,7 @@
                                                     <option value="">Choose a size</option>
                                                     {% for size_id, size_info in unique_sizes.items %}
                                                         <option value="{{ size_info.size.id }}" 
-                                                            {% if size_info.size.title == selected_size_title %}selected{% endif %}>
+                                                            {% if size_info.size.id == selected_size_id %}selected{% endif %}>
                                                             {{ size_info.size.title|title }} ({{ size_info.size.code }})
                                                         </option>
                                                     {% endfor %}
@@ -177,8 +184,10 @@
                                 {% endif %}
 
                                 <div class="product-price" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
-                                    {% if product.product_variants.first %}
-                                        <h3 class="product-price selected-price-main">$ {{ product.product_variants.first.price }}</h3>
+                                    {% if selected_price %}
+                                        <h3 class="product-price">$ {{ selected_price }}</h3>
+                                    {% elif product.product_variants.exists %}
+                                        <h3 class="product-price">$ {{ product.product_variants.first.price }}</h3>
                                     {% else %}
                                         <h3 class="product-price">$ {{ product.price }}</h3>
                                     {% endif %}

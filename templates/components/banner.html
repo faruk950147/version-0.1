@@ -28,7 +28,7 @@
 							{% endif %}
 							<h2 class="white-color">{{banner.product.title|title|truncatewords:3}}</h2>
 							<h3 class="product-price white-color"> 
-								{% if banner.product.product_variants.first %}
+								{% if banner.product.product_variants.exists %}
 								$ {{banner.product.product_variants.first.price|title}} 
 								{% else %}
 								$ {{banner.product.price|title}}

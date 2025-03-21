@@ -48,7 +48,7 @@
 							</h2>
 							</a>
 							<h3 class="product-price white-color"> 										
-								{% if side_deals_banner.product.product_variants.first %}
+								{% if side_deals_banner.product.product_variants.exists %}
 								$ {{side_deals_banner.product.product_variants.first.price|title}}
 								{% else %}
 								$ {{side_deals_banner.product.price|title}}
@@ -100,7 +100,7 @@
 								</div>
 								<div class="product-body">
 									<h3 class="product-price"> 		
-									{% if deals_product.product_variants.first %}
+									{% if deals_product.product_variants.exists %}
 										$ {{deals_product.product_variants.first.price|title}}
 									{% else %}
 										$ {{deals_product.price|title}}
