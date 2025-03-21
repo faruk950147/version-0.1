@@ -102,12 +102,14 @@
                         
 
                         <div class="product-options">
-                            <form action="" method="POST" id="addToChartForm">
+                            {% comment %} Add to Cart Form component completed  just create the view {% endcomment %}
+                            <form action="" method="POST" id="addToCartForm">
                                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                
                                 {% if product.variant == "Sizes-Colors" %}
                                     <input type="hidden" id="selected_size_id" value="{{ selected_size_id }}">
                                     <input type="hidden" id="selected_color_id" value="{{ selected_color_id }}">
-
+                            
                                     {% if unique_sizes and unique_colors %}
                                         <!-- Size Selection -->
                                         <div class="size-option" style="margin-bottom: 20px;">
@@ -123,7 +125,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    
+                            
                                         <!-- Color Selection -->
                                         <div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
                                             <span class="text-uppercase">Color:</span>
@@ -131,7 +133,7 @@
                                                 {% for color_id, color in unique_colors.items %}
                                                     <div class="color" data-title="{{ color.color.title }}" style="display: flex; flex-direction: column; align-items: center;">
                                                         <input type="radio" name="color-select" id="color-select{{ color_id }}" value="{{ color_id }}"
-                                                            {% if color_id == selected_color_id %}checked{% endif %}>
+                                                               {% if color_id == selected_color_id %}checked{% endif %}>
                                                         <label for="color-select{{ color_id }}" style="background-color:{{ color.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
                                                         <div class="variant-img">
                                                             <img class="thumb" src="{{ color.image }}" alt="{{ color.color.title }}" width="50">
@@ -140,10 +142,8 @@
                                                     </div>
                                                 {% endfor %}
                                             </div>
-                                        </div> 
+                                        </div>
                                     {% endif %}
-
-                                
                                 {% elif product.variant == "Sizes" or product.variant == "Colors" %}
                                     {% if unique_sizes %}
                                         <!-- Size Selection -->
@@ -163,7 +163,7 @@
                                             </div>
                                         </div>
                                     {% endif %}
-                                
+                            
                                     {% if unique_colors %}
                                         <!-- Color Selection -->
                                         <div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
@@ -182,12 +182,10 @@
                                             </div>
                                         </div>
                                     {% endif %}
-                                
-                                {% else %}    
-                                    <!-- No variant -->
+                                {% else %}
                                     <p>No variant available</p>
                                 {% endif %}
-
+                            
                                 <div class="product-price" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
                                     {% if selected_price %}
                                         <h3 class="product-price selected-price-main">$ {{ selected_price }}</h3>
@@ -200,7 +198,7 @@
                                         <h3 class="product-price"> <del class="product-old-price">$ {{ product.old_price }}</del> </h3>
                                     {% endif %}
                                 </div>
-
+                            
                                 <div class="qty-input" style="margin-top: 15px;">
                                     <span class="text-uppercase">QTY: </span>
                                     <input class="input" name="quantity" type="number" value="1" min="1"
@@ -211,7 +209,6 @@
                                 </div>
                             </form>
                         </div>
-
                     </div>
                 </div>
             </div>
