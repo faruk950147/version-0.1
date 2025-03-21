@@ -21,7 +21,7 @@ class Category(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '01. Categories'
 
     @property
@@ -41,7 +41,7 @@ class Brand(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '02. Brands'
 
     @property
@@ -83,7 +83,7 @@ class Product(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '03. Products'
         
     @property 
@@ -116,7 +116,7 @@ class Images(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '04. Images'
 
     @property
@@ -133,7 +133,7 @@ class Color(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '05. Product Colors'
     
     @property
@@ -153,7 +153,7 @@ class Size(models.Model):
     updated_date = models.DateTimeField(auto_now=True)   
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '06. Product Sizes'
 
     def __str__(self):
@@ -171,7 +171,7 @@ class Variants(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '07. Product Variants'
 
     def __str__(self):
@@ -202,7 +202,7 @@ class  Slider(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '08. Sliders'
         
     @property
@@ -226,7 +226,7 @@ class Banner(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '09. Banners'
         
     @property
@@ -253,7 +253,7 @@ class ProductFuture(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '10. Future'
         
     def __str__(self):
@@ -270,7 +270,7 @@ class Review(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '11. Reviews'
 
     def __str__(self):

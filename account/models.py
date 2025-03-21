@@ -34,7 +34,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["email", ]
 
     class Meta:
-        ordering = ['-joined_date']
+        ordering = ['id']
         verbose_name_plural = '1 User'
     
     def __str__(self):
@@ -53,7 +53,7 @@ class Profile(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     
     class Meta:
-        ordering = ['-joined_date']
+        ordering = ['id']
         verbose_name_plural = '2 Profiles'
         
     @property

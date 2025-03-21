@@ -176,8 +176,13 @@
                                     <p>No variant available</p>
                                 {% endif %}
 
-                                <div class="product-price-wrapper" style="display:flex; align-items: center; gap: 10px;">
-                                    <button type="submit" class="btn btn-primary">Add to Cart</button>
+                                <div class="qty-input" style="margin-top: 15px;">
+                                    <span class="text-uppercase">QTY: </span>
+                                    <input class="input" name="quantity" type="number" value="1" min="1"
+                                           max="{% if product.product_variants.first %}{{ product.product_variants.first.quantity }}{% else %}{{ product.in_stock_max }}{% endif %}">
+                                    <button type="submit" class="primary-btn add-to-cart">
+                                        <i class="fa fa-shopping-cart"></i> Add to Cart
+                                    </button>
                                 </div>
                             </form>
                         </div>
