@@ -111,7 +111,79 @@ class GetColorsBySize(generic.View):
             'status': 200 if colors else 404,
             'messages': 'Colors available for size ' + selected_size_title if colors else 'No colors available for this size'
         }) 
-  
+ 
+class GetPriceBySize(generic.View):
+    def get(self, request):
+        just_size_id = request.GET.get('just_size_id')
+        product_id = request.GET.get('product_id')
+
+        # Validate size_id and product_id
+        try:
+            just_size_id = int(just_size_id)
+            product_id = int(product_id)
+        except (ValueError, TypeError):
+            return JsonResponse({
+                'selected_price': None,
+                'selected_size_title': None,
+                'status': 400,
+                'messages': 'Invalid size ID or product ID'
+            })
+
+        # Fetch the variant for the given product and size
+        variant = Variants.objects.filter(product_id=product_id, size_id=just_size_id).first()
+
+        if variant:
+            # Safe to access size and price as variant is guaranteed
+            return JsonResponse({
+                'selected_size_title': variant.size.title,
+                'selected_price': variant.price,
+                'status': 200,
+                'messages': f'Price available for size {variant.size.title}'
+            })
+        else:
+            return JsonResponse({
+                'selected_price': None,
+                'selected_size_title': None,
+                'status': 404,
+                'messages': 'No price available for this size'
+            })
+
+class GetPriceByColor(generic.View):
+    def get(self, request):
+        just_color_id = request.GET.get('just_color_id')
+        product_id = request.GET.get('product_id')
+
+        # Validate color_id and product_id
+        try:
+            just_color_id = int(just_color_id)
+            product_id = int(product_id)
+        except (ValueError, TypeError):
+            return JsonResponse({
+                'selected_price': None,
+                'selected_color_title': None,
+                'status': 400,
+                'messages': 'Invalid color ID or product ID'
+            })
+
+        # Fetch the variant for the given product and color
+        variant = Variants.objects.filter(product_id=product_id, color_id=just_color_id).first()
+
+        if variant:
+            # Safe to access color and price as variant is guaranteed
+            return JsonResponse({
+                'selected_color_title': variant.color.title,
+                'selected_price': variant.price,
+                'status': 200,
+                'messages': f'Price available for color {variant.color.title}'
+            })
+        else:
+            return JsonResponse({
+                'selected_price': None,
+                'selected_color_title': None,
+                'status': 404,
+                'messages': 'No price available for this color'
+            })
+                  
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')

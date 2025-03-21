@@ -208,6 +208,76 @@
 				$("#selected_color_id").val($(this).val());
 			});
 
+			// Listen for changes in the size selection
+			$(document).on("change", "input[name='just-size-select']", function(e) {
+				let just_size_id = $(this).val();
+				let product_id = $("#product_id").val();  // Assuming the product ID is in a hidden input with id="product_id"
+
+				// Optionally, make an AJAX request to get the price
+				$.ajax({
+					url: "{% url 'getpricebysize' %}",  // Replace with your actual URL
+					data: {
+						just_size_id: just_size_id,
+						product_id: product_id,
+					},
+					success: function(res) {
+						// Assuming the response contains the price
+						if (res.status == 200) {
+							alertify.success(res.messages)
+							$(".selected-price").text("Selected Price: " + res.selected_price);
+							$(".selected-price-main").text("$ " + res.selected_price);
+							$(".selected-size").text("Selected Size: " + res.selected_size_title);
+						} else if (res.status == 404) {
+							alertify.error(res.messages)
+							$(".selected-price").text("Selected Price: Price not available");
+							$(".selected-price-main").text("Price not available");
+						} else {
+							alertify.error(res.messages)
+							$(".selected-price").text("Selected Price: Price not available");
+							$(".selected-price-main").text("Price not available");
+						}
+					},
+					error: function() {
+						$(".selected-price-main").text("Error fetching price");
+					}
+				});
+			});
+
+			// Listen for changes in the color selection
+			$(document).on("change", "input[name='just-color-select']", function(e) {
+				let just_color_id = $(this).val();
+				let product_id = $("#product_id").val();  // Assuming the product ID is in a hidden input with id="product_id"
+
+				// Optionally, make an AJAX request to get the price
+				$.ajax({
+					url: "{% url 'getpricebycolor' %}",  // Replace with your actual URL
+					data: {
+						just_color_id: just_color_id,
+						product_id: product_id,
+					},
+					success: function(res) {
+						// Assuming the response contains the price
+						if (res.status == 200) {
+							alertify.success(res.messages)
+							$(".selected-price").text("Selected Price: " + res.selected_price);
+							$(".selected-price-main").text("$ " + res.selected_price);
+							$(".selected-color").text("Selected Color: " + res.selected_color_title);
+						} else if (res.status == 404) {
+							alertify.error(res.messages)
+							$(".selected-price").text("Selected Price: Price not available");
+							$(".selected-price-main").text("Price not available");
+						} else {
+							alertify.error(res.messages)
+							$(".selected-price").text("Selected Price: Price not available");
+							$(".selected-price-main").text("Price not available");
+						}
+					},
+					error: function() {
+						$(".selected-price-main").text("Error fetching price");
+					}
+				});
+			});
+
 		});
 	</script>
 {% endblock extra_scripts %}	
