@@ -23,6 +23,9 @@
 {% block extra_scripts %}
 	<script>
 		$(document).ready(function () {
+			// Initial selected size and color from hidden inputs
+			let selected_size_id = $("#selected_size_id").val(); 
+			let selected_color_id = $("#selected_color_id").val();
 			// render stars
 			function renderStars(rate) {
 				let stars = "";
@@ -138,7 +141,7 @@
 				$(`input[name='rate'][value='${rate}']`).prop("checked", true);
 			});
 
-			// Listen for changes in the size selection
+			
 			$(document).on("change", "#size-select", function() {
 				let size_id = $(this).val();
 				let product_id = $("#product_id").val();
@@ -154,7 +157,8 @@
 								$.each(res.colors, function(index, color){
 									colorHtml += `
 									<div class="color" style="display: flex; flex-direction: column; align-items: center;">
-										<input type="radio" name="color-select" id="color-select${color.id}" value="${color.id}">
+										<input type="radio" name="color-select" id="color-select${color.id}" value="${color.id}" 
+											${color.id == selected_color_id ? 'checked' : ''}>
 										<label for="color-select${color.id}" style="background-color:${color.code}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
 										<div class="variant-img" style="text-align: center;">
 											<img class="thumb" src="${color.image}" alt="${color.title}" width="50" style="object-fit: contain;">
@@ -166,9 +170,25 @@
 
 								// Update the color options
 								$(".selected-size").text("Selected Size: " + res.selected_size_title);
+								$(".selected-color").text("Selected Color: " + res.selected_color_title); // Display the selected color title
 								$(".selected-price").text("Selected Price: $ " + res.selected_price);
 								$(".selected-price-main").text("$ " + res.selected_price);
 								$(".color-variant").html(colorHtml);
+
+								// Set the default color as the first color in the list if no color is selected
+								if (!selected_color_id && res.colors.length > 0) {
+									selected_color_id = res.colors[0].id;  // Set the first color as the default
+									$("#color-select" + selected_color_id).prop('checked', true);
+								}
+
+								// Store selected size and color id to maintain them across selections
+								selected_size_id = res.selected_size_id; 
+								selected_color_id = res.selected_color_id;
+
+								// Update hidden fields with the current selected values
+								$("#selected_size_id").val(selected_size_id);
+								$("#selected_color_id").val(selected_color_id);
+
 								alertify.success(res.messages);
 							} else if(res.status == 400){
 								alertify.error(res.messages);
@@ -182,61 +202,93 @@
 				}
 			});
 
-			// Listen for changes in the color selection
+			
 			$(document).on("change", "input[name='color-select']", function() {
-				let color_id = $(this).val();
-				let product_id = $('#product_id').val();
+				selected_color_id = $(this).val();
+
 				
-				if(color_id.length > 0 && product_id.length > 0) {
-					$.ajax({
-						url: "{% url 'getpricebycolor' %}",
-						method: "GET",
-						data: { 'color_id': color_id, 'product_id': product_id },
-						success: function(res) {
-							if (res.status === 200) {
-								$('.selected-color').text('Selected Color: ' + res.selected_color_title);
-								$('.selected-size').text('Selected Size: ' + res.selected_size_title);  
-								$('.selected-price').text('Selected Price: ' + res.selected_price);
-								$('.selected-price-main').text("$ " + res.selected_price);
-							} else if (res.status === 400) {
-								$('.selected-color').text('');
-								$('.selected-size').text('');
-								$('.selected-price').text('');
-								$('.selected-price-main').text('');
-							}
-						}
-					});
-				}
+				let selectedColorTitle = $(this).closest(".color").find("span").text().split(" ($")[0]; // Extract only title
+				let selectedColorPrice = $(this).closest(".color").find("span").text().match(/\$\d+(\.\d+)?/); // Extract price
+
+				
+				selectedColorPrice = selectedColorPrice ? selectedColorPrice[0] : "Unknown Price";
+
+				
+				$(".selected-color").text("Selected Color: " + selectedColorTitle);
+				$(".selected-price").text("Selected Price: " + selectedColorPrice);
+				$(".selected-price-main").text(selectedColorPrice);
+
+				
+				$("#selected_color_id").val(selected_color_id);
 			});
 
 
-			$(document).on("change", "input[name='size-select']", function() {
+			// Listen for changes in the size selection
+			$(document).on("change", "#size-select", function() {
 				let size_id = $(this).val();
 				let product_id = $("#product_id").val();
+			
 				if(size_id.length > 0 && product_id.length > 0) {
 					$.ajax({
-						url: "{% url 'getpricebysize' %}",
+						url: "{% url 'getcolorsbysize' %}",
 						method: "GET",
-						data: {
-							'size_id': size_id,
-							'product_id': product_id
-						},
-						success: function(res){
-							if(res.status == 200){
+						data: {'size_id': size_id, 'product_id': product_id},
+						success: function(res) {
+							if(res.status == 200) {
+								var colorHtml = "";
+								$.each(res.colors, function(index, color){
+									colorHtml += `
+									<div class="color" data-title="${color.title}" style="display: flex; flex-direction: column; align-items: center;">
+										<input type="radio" name="color-select" id="color-select${color.id}" value="${color.id}" 
+											${index === 0 ? 'checked' : ''}>
+										<label for="color-select${color.id}" style="background-color:${color.code}; width: 20px; height: 20px;"></label>
+										<div class="variant-img">
+											<img class="thumb" src="${color.image}" alt="${color.title}" width="50">
+										</div>
+										<span>${color.title} ($${color.price})</span>
+									</div>`;
+								});
+			
 								$(".selected-size").text("Selected Size: " + res.selected_size_title);
-								$(".selected-price").text("Selected Price: $ " + res.selected_price);
-								$('.selected-price-main').text("$ " + res.selected_price);
-							} else if(res.status == 400){
-								errorHtml = "<p style='color:red;'>No price available for this size.</p>";
-								$(".selected-size").text("");
-								$(".selected-price").text("");
-								$('.selected-price-main').text("");
-								$(".size-variant").html(errorHtml);
+								$(".selected-color").text("Selected Color: " + res.selected_color_title);
+								$(".selected-price").text("Selected Price: " + res.selected_price);
+								$(".selected-price-main").text("$ " + res.selected_price);
+								$(".color-variant").html(colorHtml);
+			
+								// if color exists, set the first one as checked and trigger change
+								if(res.colors.length > 0) {
+									$("#color-select" + res.colors[0].id).prop('checked', true).trigger("change");
+								}
+							} else {
+								$(".color-variant").html("<p style='color:red;'>No colors available.</p>");
 							}
 						}
 					});
 				}
 			});
+			
+			// Listen for changes in the color selection
+			$(document).on("change", "input[name='color-select']", function(e) {
+				e.preventDefault();
+
+				// Get the selected color's title
+				let selectedColorTitle = $(this).siblings("span").text().split(" ($")[0];
+				
+				// Get the selected color's price
+				let selectedColorPrice = $(this).closest(".color").find("span").text().match(/\$\d+(\.\d+)?/);
+				
+				// Ensure price is not null
+				selectedColorPrice = selectedColorPrice ? selectedColorPrice[0] : "$0";
+				
+				// Update the UI
+				$(".selected-color").text("Selected Color: " + selectedColorTitle);
+				$(".selected-price").text("Selected Price: " + selectedColorPrice);
+				$(".selected-price-main").text(selectedColorPrice);
+
+				// Update hidden input field with selected color
+				$("#selected_color_id").val($(this).val());
+			});
+
 		});
 	</script>
 {% endblock extra_scripts %}	

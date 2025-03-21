@@ -33,42 +33,33 @@ class HomeView(generic.View):
         }
         return render(request, 'stories/home.html', context)
 
+@method_decorator(never_cache, name='dispatch')
 class SingleProductView(generic.View):
     def get(self, request, id):
         product = get_object_or_404(Product.objects.prefetch_related('product_variants'), id=id)
 
-        # Related products (same category but excluding the current product)
-        related_products = Product.objects.filter(category=product.category).exclude(id=product.id) \
-            .select_related('category').prefetch_related('product_variants__color', 'product_variants__size') \
-            .order_by('-id')[:4]
+        related_products = Product.objects.filter(category=product.category).exclude(id=product.id).select_related('category').prefetch_related('product_variants__color', 'product_variants__size').order_by('-id')[:4]
 
-        # Reviews for the current product with user details
         reviews = Review.objects.filter(product=product, status=True).select_related('user').prefetch_related('product')
         reviews_total = reviews.count()
 
-        # Prefetch related Variants
         variants = Variants.objects.filter(product=product).select_related('size', 'color')
 
         size_variants = variants.filter(size__isnull=False).order_by('size')
         color_variants = variants.filter(color__isnull=False).order_by('color')
 
         unique_sizes = {variant.size.id: {'size': variant.size, 'image': variant.image or 'No Image Available', 'price': variant.price} for variant in size_variants}
-
         unique_colors = {variant.color.id: {'color': variant.color, 'image': variant.image or 'No Image Available', 'price': variant.price} for variant in color_variants}
 
-        # Safely get first size and color variant
         first_size_variant = size_variants.first()
         first_color_variant = color_variants.first()
-  
-        # Use conditional expression to set ids more cleanly
+
         selected_size_id = first_size_variant.size_id if first_size_variant and first_size_variant.size else None
         selected_color_id = first_color_variant.color_id if first_color_variant and first_color_variant.color else None
 
-        # Get size and color title with a fallback for None values
         selected_size_title = first_size_variant.size.title if first_size_variant and first_size_variant.size else "Unknown Size"
         selected_color_title = first_color_variant.color.title if first_color_variant and first_color_variant.color else "Unknown Color"
         selected_price = first_size_variant.price if first_size_variant else None
-        
 
         context = {
             'product': product,
@@ -83,108 +74,44 @@ class SingleProductView(generic.View):
             'selected_size_id': selected_size_id,
             'selected_color_id': selected_color_id,
         }
-        return render(request, 'stories/single.html', context) 
-    
+        return render(request, 'stories/single.html', context)
+
+@method_decorator(never_cache, name='dispatch')
 class GetColorsBySize(generic.View):
     def get(self, request):
         size_id = request.GET.get('size_id')
         product_id = request.GET.get('product_id')
 
-        # Validate size_id and product_id
         try:
             size_id = int(size_id)
             product_id = int(product_id)
         except (ValueError, TypeError):
             return JsonResponse({'colors': [], 'status': 400, 'messages': 'Invalid size ID or product ID'})
 
-        # Get variants
         variants = Variants.objects.filter(product_id=product_id, size_id=size_id).select_related('size', 'color')
 
-        # Get first variant safely
         selected_variant = variants.first()
-        selected_size_title = getattr(selected_variant, 'size', None)
-        selected_size_title = selected_size_title.title if selected_size_title else "Unknown Size"
-        selected_price = getattr(selected_variant, 'price', None)
+        selected_size_title = selected_variant.size.title if selected_variant else "Unknown Size"
+        selected_price = selected_variant.price if selected_variant else None
+        selected_color_title = selected_variant.color.title if selected_variant and selected_variant.color else "Unknown Color"
 
-        # Get colors
         colors = [
-            {'id': variant.color.id,'title': variant.color.title,'code': variant.color.code,
-            'image': variant.image or 'No Image Available','price': variant.price
-            }
+            {'id': variant.color.id, 'title': variant.color.title, 'code': variant.color.code,
+            'image': variant.image or 'No Image Available', 'price': variant.price}
             for variant in variants if variant.color
         ]
 
-        # Return response
         return JsonResponse({
             'colors': colors,
             'selected_size_title': selected_size_title,
             'selected_price': selected_price,
+            'selected_color_title': selected_color_title, 
+            'selected_size_id': size_id,
+            'selected_color_id': colors[0]['id'] if colors else None,  
             'status': 200 if colors else 404,
-            'messages': f'Colors available for size {selected_size_title}' if colors else 'No colors available for this size'
-        })
-        
-@method_decorator(never_cache, name='dispatch')
-class GetPriceByColor(generic.View):
-    def get(self, request):
-        color_id = request.GET.get('color_id')
-        product_id = request.GET.get('product_id')
-
-        try:
-            color_id = int(color_id)
-            product_id = int(product_id)
-        except (ValueError, TypeError):
-            return JsonResponse({'price': None, 'status': 400, 'messages': 'Invalid color ID or product ID'})
-
-        variants = Variants.objects.filter(product_id=product_id, color_id=color_id).select_related('color', 'size')
-
-        if not variants.exists():
-            return JsonResponse({'price': None, 'status': 404, 'messages': 'No price available for this color'})
-
-        selected_variant = variants.first()
-
-        # Make sure selected_variant and its fields are not None
-        selected_color_title = selected_variant.color.title if selected_variant and selected_variant.color else "Unknown Color"
-        selected_price = selected_variant.price if selected_variant else None
-        selected_size_title = selected_variant.size.title if selected_variant and selected_variant.size else "Unknown Size"
-    
-        return JsonResponse({
-            'selected_color_title': selected_color_title,
-            'selected_size_title': selected_size_title,
-            'selected_price': selected_price,
-            'status': 200,
-            'messages': f'Price available for color {selected_color_title}'
-        })
-
-@method_decorator(never_cache, name='dispatch')
-class GetPriceBySize(generic.View):
-    def get(self, request):
-        size_id = request.GET.get('size_id')
-        product_id = request.GET.get('product_id')
-
-        try:
-            size_id = int(size_id)
-            product_id = int(product_id)
-        except (ValueError, TypeError):
-            return JsonResponse({'price': None, 'status': 400, 'messages': 'Invalid size ID or product ID'})
-
-        variants = Variants.objects.filter(product_id=product_id, size_id=size_id).select_related('size', 'color')
-
-        if not variants.exists():
-            return JsonResponse({'price': None, 'status': 404, 'messages': 'No price available for this size'})
-
-        selected_variant = variants.first()
-
-        # Ensure selected_variant and its fields are not None
-        selected_size_title = selected_variant.size.title if selected_variant and selected_variant.size else "Unknown Size"
-        selected_price = selected_variant.price if selected_variant else None
-    
-        return JsonResponse({
-            'selected_size_title': selected_size_title,
-            'selected_price': selected_price,
-            'status': 200,
-            'messages': f'Price available for size {selected_size_title}'
-        })
-             
+            'messages': 'Colors available for size ' + selected_size_title if colors else 'No colors available for this size'
+        }) 
+  
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
