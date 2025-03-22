@@ -106,11 +106,11 @@
                             <form action="" method="POST" id="addToCartForm">
                                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                                 
-                                {% if product.variant == "Sizes-Colors" %}
+                                {% if product.variant == "Sizes-Colors" or product.variant == "Sizes" or product.variant == "Colors" %}
                                     <input type="hidden" id="selected_size_id" value="{{ selected_size_id }}">
                                     <input type="hidden" id="selected_color_id" value="{{ selected_color_id }}">
                             
-                                    {% if unique_sizes and unique_colors %}
+                                    {% if unique_sizes or unique_colors %}
                                         <!-- Size Selection -->
                                         <div class="size-option" style="margin-bottom: 20px;">
                                             <div class="size-variant">
@@ -144,46 +144,6 @@
                                             </div>
                                         </div>
                                     {% endif %}
-                                {% elif product.variant == "Sizes" or product.variant == "Colors" %}
-                                    {% if unique_sizes %}
-                                        <!-- Size Selection -->
-                                        <div class="size-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
-                                            <span class="text-uppercase">Size:</span>
-                                            <div class="size-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
-                                                {% for size_id, size_info in unique_sizes.items %}
-                                                    <div class="size" style="display: flex; flex-direction: column; align-items: center;">
-                                                        <input type="radio" name="just-size-select" id="just-size-select{{ size_info.size.id }}" value="{{ size_info.size.id }}" {% if size_id == selected_size_id %}checked{% endif %}>
-                                                        <label for="just-size-select{{ size_info.size.id }}" style="background-color:{{ size_info.size.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
-                                                        <div class="variant-img" style="text-align: center;">
-                                                            <img class="thumb" src="{{ size_info.image }}" alt="{{ size_info.size.title|title }}" width="50" style="object-fit: contain;">
-                                                        </div>
-                                                        <span>{{ size_info.size.title|title }} ({{ size_info.price }})</span>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                            
-                                    {% if unique_colors %}
-                                        <!-- Color Selection -->
-                                        <div class="color-option" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
-                                            <span class="text-uppercase">Color:</span>
-                                            <div class="color-variant" style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px;">
-                                                {% for color_id, color_data in unique_colors.items %}
-                                                    <div class="color" style="display: flex; flex-direction: column; align-items: center;">
-                                                        <input type="radio" name="just-color-select" id="just-color-select{{ color_data.color.id }}" value="{{ color_data.color.id }}" {% if color_id == selected_color_id %}checked{% endif %}>
-                                                        <label for="just-color-select{{ color_data.color.id }}" style="background-color:{{ color_data.color.code }}; width: 20px; height: 20px; border-radius: 50%; cursor: pointer;"></label>
-                                                        <div class="variant-img" style="text-align: center;">
-                                                            <img class="thumb" src="{{ color_data.image }}" alt="{{ color_data.color.title|title }}" width="50" style="object-fit: contain;">
-                                                        </div>
-                                                        <span>{{ color_data.color.title|title }} ({{ color_data.price }})</span>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    {% endif %}
-                                {% else %}
-                                    <p>No variant available</p>
                                 {% endif %}
                             
                                 <div class="product-price" style="display: flex; flex-direction: row; align-items: center; gap: 10px;">
