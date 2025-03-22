@@ -51,8 +51,9 @@ class SingleProductView(generic.View):
         unique_sizes = {variant.size.id: {'size': variant.size, 'image': variant.image or 'No Image Available', 'price': variant.price} for variant in size_variants}
         unique_colors = {variant.color.id: {'color': variant.color, 'image': variant.image or 'No Image Available', 'price': variant.price} for variant in color_variants}
 
-        first_size_variant = size_variants.first()
-        first_color_variant = color_variants.first()
+        # Replace first() with direct list indexing
+        first_size_variant = size_variants[0] if size_variants else None
+        first_color_variant = color_variants[0] if color_variants else None
 
         selected_size_id = first_size_variant.size_id if first_size_variant and first_size_variant.size else None
         selected_color_id = first_color_variant.color_id if first_color_variant and first_color_variant.color else None
@@ -145,7 +146,7 @@ class GetColorsBySize(generic.View):
             'status': status,
             'messages': message
         }, status=status)
-    
+   
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
