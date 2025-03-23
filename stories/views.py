@@ -83,13 +83,13 @@ class GetColorsBySize(generic.View):
         product_id = request.GET.get('product_id')
 
         if not product_id:
-            return JsonResponse({'status': 400, 'message': 'Product ID is required'}, status=400)
+            return JsonResponse({'status': 400, 'message': 'Product ID is required'})
 
         try:
             size_id = int(size_id) if size_id else None
             product_id = int(product_id)
         except (ValueError, TypeError):
-            return JsonResponse({'status': 400, 'message': 'Invalid size ID or product ID'}, status=400)
+            return JsonResponse({'status': 400, 'message': 'Invalid size ID or product ID'})
 
         # Filter conditions based on product_id and optionally size_id  
         filter_conditions = {'product_id': product_id}
@@ -99,7 +99,7 @@ class GetColorsBySize(generic.View):
         variants = list(Variants.objects.filter(**filter_conditions).select_related('size', 'color'))
 
         if not variants:
-            return JsonResponse({'status': 404, 'message': 'No variants available'}, status=404)
+            return JsonResponse({'status': 404, 'message': 'No variants available'})
 
         colors = [
             {
@@ -121,7 +121,7 @@ class GetColorsBySize(generic.View):
                 'colors': [],
                 'selected_size_title': selected_size.title if selected_size else "",
                 'selected_price': selected_price,
-                'message': f'Only size available: {selected_size.title if selected_size else "Unknown"}'
+                'messages': f'Only size available: {selected_size.title if selected_size else "Unknown"}'
             })
 
         # ** Just color available but no size available **
@@ -131,7 +131,7 @@ class GetColorsBySize(generic.View):
                 'colors': colors,
                 'selected_size_title': "",
                 'selected_price': colors[0]['price'] if colors else "0.00",
-                'message': 'Only colors available'
+                'messages': 'Only colors available'
             })
 
         # ** Both size and color are available **
@@ -142,12 +142,11 @@ class GetColorsBySize(generic.View):
                 'colors': colors,
                 'selected_size_title': selected_size_title,
                 'selected_price': colors[0]['price'],
-                'message': f'Colors available for size {selected_size_title}'
+                'messages': f'Colors available for size {selected_size_title}'
             })
 
         # ** Nothing available **
-        return JsonResponse({'status': 404, 'message': 'No variants available'}, status=404)
-
+        return JsonResponse({'status': 404, 'message': 'No variants available'})
 
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
@@ -175,7 +174,7 @@ class ReviewsView(LoginRequiredMixin, generic.View):
                 if not review_id:
                     existing_review = Review.objects.filter(product=product, user=request.user).first()
                     if existing_review:
-                            return JsonResponse({"status": 400, "messages": "You have already reviewed this product."}, status=400)
+                            return JsonResponse({"status": 400, "messages": "You have already reviewed this product."})
                 
                 if review_id:  # Editing an existing review
                     review = get_object_or_404(Review, id=review_id, user_id=request.user.id)
@@ -201,8 +200,8 @@ class ReviewsView(LoginRequiredMixin, generic.View):
                     "rate": review.rate,  
                     "updated_date": review.updated_date.strftime('%Y-%m-%d %H:%M:%S'),
                     "messages": "Review added successfully"
-                } , status=200)
+                })
             except Review.DoesNotExist:
-                return JsonResponse({"status": 400, "messages": "Review not found for this user"}, status=400)
+                return JsonResponse({"status": 400, "messages": "Review not found for this user"})
             except Exception as e:
-                return JsonResponse({"status": 400, "messages": str(e)}, status=400)
+                return JsonResponse({"status": 400, "messages": str(e)})

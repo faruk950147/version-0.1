@@ -89,11 +89,9 @@
                         <p>Keyword: {{product.keyword|title}}</p>
                         <p class="selected-size">Selected Size: {{selected_size_title}}</p>
                         <p class="selected-color">Selected Color: {{selected_color_title}}</p>
-                        <p class="selected-price">
-                            Selected Price: 
-                            $ {% if selected_price %}
-                                {{ selected_price }}
-                            {% elif product.product_variants.exists %}
+                        <p class="product-price">
+                            Main Price: 
+                            {% if product.product_variants.exists %}
                                 {{ product.product_variants.first.price }}
                             {% else %}
                                 {{ product.price }}
