@@ -141,85 +141,77 @@
 
 
 			
-			// Initial selected size and color from hidden inputs
 			let selected_size_id = $("#selected_size_id").val(); 
 			let selected_color_id = $("#selected_color_id").val();
 
-			// Size Selection Change Event
+			// Listen for changes in the size selection
 			$(document).on("change", "#size-select", function(e) {
 				e.preventDefault();
 				let size_id = $(this).val();
 				let product_id = $("#product_id").val();
-
-				if (size_id && product_id) {
+			
+				if(size_id.length > 0 && product_id.length > 0) {
 					$.ajax({
 						url: "{% url 'getcolorsbysize' %}",
 						method: "GET",
-						data: {
-							'size_id': size_id,
-							'product_id': product_id
-						},
+						data: {'size_id': size_id, 'product_id': product_id},
 						success: function(res) {
-							console.log(res); // Debugging
-
-							if (res.status == 200) {
-								if (res.colors.length > 0) { // যদি সাইজ অনুযায়ী কালার থাকে
-									var colorHtml = "";
-									$.each(res.colors, function(index, color){
-										colorHtml += `
-										<div class="color" data-title="${color.title}" style="display: flex; flex-direction: column; align-items: center;">
-											<input type="radio" name="color-select" id="color-select${color.id}" value="${color.id}" 
-												${index === 0 ? 'checked' : ''}>
-											<label for="color-select${color.id}" style="background-color:${color.code}; width: 20px; height: 20px;"></label>
-											<div class="variant-img">
-												<img class="thumb" src="${color.image}" alt="${color.title}" width="50">
-											</div>
-											<span>${color.title} ($${color.price})</span>
-										</div>`;
-									});
-
-									$(".color-variant").html(colorHtml);
-									$("#selected_size_id").val(size_id);
-									$(".selected-size").text("Selected Size: " + res.selected_size_title);
-									$(".selected-price-main").text("$" + res.selected_price);
-
-									// প্রথম color সিলেক্ট করা থাকলে সেট করুন
-									if(res.colors.length > 0) {
-										$("#color-select" + res.colors[0].id).prop('checked', true).trigger("change");
-									}
-								} else { 
-									// যদি শুধু সাইজ থাকে, তাহলে শুধু সাইজ আপডেট হবে
-									$(".color-variant").html("<p style='color:red;'>No colors available.</p>");
-									$(".selected-size").text("Selected Size: " + res.selected_size_title);
-									$(".selected-price-main").text("$" + res.selected_price);
-									$("#selected_size_id").val(size_id);
+							if(res.status == 200) {
+								var colorHtml = "";
+								$.each(res.colors, function(index, color){
+									colorHtml += `
+									<div class="color" data-title="${color.title}" style="display: flex; flex-direction: column; align-items: center;">
+										<input type="radio" name="color-select" id="color-select${color.id}" value="${color.id}" 
+											${index === 0 ? 'checked' : ''}>
+										<label for="color-select${color.id}" style="background-color:${color.code}; width: 20px; height: 20px;"></label>
+										<div class="variant-img">
+											<img class="thumb" src="${color.image}" alt="${color.title}" width="50">
+										</div>
+										<span>${color.title} ($${color.price})</span>
+									</div>`;
+								});
+			
+								$(".selected-size").text("Selected Size: " + res.selected_size_title);
+								$(".selected-color").text("Selected Color: " + res.selected_color_title);
+								$(".selected-price").text("Selected Price: " + res.selected_price);
+								$(".selected-price-main").text("$ " + res.selected_price);
+								$(".color-variant").html(colorHtml);
+			
+								// if color exists, set the first one as checked and trigger change
+								if(res.colors.length > 0) {
+									$("#color-select" + res.colors[0].id).prop('checked', true).trigger("change");
 								}
 							} else {
 								$(".color-variant").html("<p style='color:red;'>No colors available.</p>");
-								$(".selected-price-main").text("$0.00");
 							}
-						},
-						error: function(xhr, status, error) {
-							console.log("Error: " + error);
 						}
 					});
 				}
 			});
-
 			
-			// Color Selection Change Event
+			// Listen for changes in the color selection
 			$(document).on("change", "input[name='color-select']", function(e) {
 				e.preventDefault();
 
+				// Get the selected color's title
 				let selectedColorTitle = $(this).siblings("span").text().split(" ($")[0];
-				let selectedColorPrice = $(this).closest(".color").find("span").text().replace(/[^0-9.]/g, '');
-				selectedColorPrice = selectedColorPrice ? "$" + selectedColorPrice : "$0.00";
-
+				
+				// Get the selected color's price
+				let selectedColorPrice = $(this).closest(".color").find("span").text().match(/\$\d+(\.\d+)?/);
+				
+				// Ensure price is not null
+				selectedColorPrice = selectedColorPrice ? selectedColorPrice[0] : "$0";
+				
+				// Update the UI
 				$(".selected-color").text("Selected Color: " + selectedColorTitle);
+				$(".selected-price").text("Selected Price: " + selectedColorPrice);
 				$(".selected-price-main").text(selectedColorPrice);
+
+				// Update hidden input field with selected color
 				$("#selected_color_id").val($(this).val());
 			});
 
+			console.log('selected_size_id',selected_size_id, 'selected_color_id', selected_color_id, "", $("#selected_size_id").val(), $("#selected_color_id").val());
 
 
 		});

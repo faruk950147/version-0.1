@@ -57,8 +57,8 @@ class SingleProductView(generic.View):
         selected_size_id = first_size_variant.size_id if first_size_variant and first_size_variant.size else None
         selected_color_id = first_color_variant.color_id if first_color_variant and first_color_variant.color else None
 
-        selected_size_title = first_size_variant.size.title if first_size_variant and first_size_variant.size else "Unknown Size"
-        selected_color_title = first_color_variant.color.title if first_color_variant and first_color_variant.color else "Unknown Color"
+        selected_size_title = first_size_variant.size.title if first_size_variant and first_size_variant.size else None
+        selected_color_title = first_color_variant.color.title if first_color_variant and first_color_variant.color else None
         selected_price = first_size_variant.price if first_size_variant else None
 
         context = {
@@ -80,16 +80,18 @@ class SingleProductView(generic.View):
 class GetColorsBySize(generic.View):
     def get(self, request):
         size_id = request.GET.get('size_id')
+        color_id = request.GET.get('color_id')
         product_id = request.GET.get('product_id')
 
         if not product_id:
-            return JsonResponse({'status': 400, 'message': 'Product ID is required'})
+            return JsonResponse({'status': 400, 'messages': 'Product ID is required'})
 
         try:
             size_id = int(size_id) if size_id else None
             product_id = int(product_id)
+            color_id = int(color_id) if color_id else None
         except (ValueError, TypeError):
-            return JsonResponse({'status': 400, 'message': 'Invalid size ID or product ID'})
+            return JsonResponse({'status': 400, 'messages': 'Invalid size ID, color ID or product ID'})
 
         # Filter conditions based on product_id and optionally size_id  
         filter_conditions = {'product_id': product_id}
@@ -99,8 +101,9 @@ class GetColorsBySize(generic.View):
         variants = list(Variants.objects.filter(**filter_conditions).select_related('size', 'color'))
 
         if not variants:
-            return JsonResponse({'status': 404, 'message': 'No variants available'})
+            return JsonResponse({'status': 404, 'messages': 'No variants available'})
 
+        # Extract available colors
         colors = [
             {
                 'id': variant.color.id,
@@ -111,42 +114,54 @@ class GetColorsBySize(generic.View):
             }
             for variant in variants if variant.color
         ]
-        
-        # ** Just size available but no color available **
+
+        # **Size Available but No Color**
         if size_id and not colors:
-            selected_size = Size.objects.filter(id=size_id).first()
+            selected_size_title = variants[0].size.title if variants and variants[0].size else None
             selected_price = str(variants[0].price) if variants else "0.00"
+
             return JsonResponse({
                 'status': 200,
                 'colors': [],
-                'selected_size_title': selected_size.title if selected_size else "",
+                'selected_size_title': selected_size_title or "",
+                'selected_color_title': "",
                 'selected_price': selected_price,
-                'messages': f'Only size available: {selected_size.title if selected_size else "Unknown"}'
+                'messages': f'Only size available: {selected_size_title or " "}'
             })
 
-        # ** Just color available but no size available **
+        # **Color Available but No Size**
         if not size_id and colors:
+            selected_color = next((color for color in colors if color['id'] == color_id), None) if color_id else (colors[0] if colors else None)
+            selected_color_title = selected_color['title'] if selected_color else ""
+            selected_price = selected_color['price'] if selected_color else "0.00"
+
             return JsonResponse({
                 'status': 200,
                 'colors': colors,
                 'selected_size_title': "",
-                'selected_price': colors[0]['price'] if colors else "0.00",
+                'selected_color_title': selected_color_title,
+                'selected_price': selected_price,
                 'messages': 'Only colors available'
             })
 
-        # ** Both size and color are available **
+        # **Both Size and Color Available**
         if colors:
             selected_size_title = variants[0].size.title if size_id and variants else ""
+            selected_color = next((color for color in colors if color['id'] == color_id), None) if color_id else (colors[0] if colors else None)
+            selected_color_title = selected_color['title'] if selected_color else ""
+            selected_price = selected_color['price'] if selected_color else "0.00"
+
             return JsonResponse({
                 'status': 200,
                 'colors': colors,
                 'selected_size_title': selected_size_title,
-                'selected_price': colors[0]['price'],
+                'selected_color_title': selected_color_title,
+                'selected_price': selected_price,
                 'messages': f'Colors available for size {selected_size_title}'
             })
 
-        # ** Nothing available **
-        return JsonResponse({'status': 404, 'message': 'No variants available'})
+        return JsonResponse({'status': 404, 'messages': 'No variants available'})
+
 
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
