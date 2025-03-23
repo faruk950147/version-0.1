@@ -82,70 +82,73 @@ class GetColorsBySize(generic.View):
         size_id = request.GET.get('size_id')
         product_id = request.GET.get('product_id')
 
-        # Validate input parameters
         if not product_id:
-            return JsonResponse({'status': 400, 'messages': 'Product ID is required'}, status=400)
+            return JsonResponse({'status': 400, 'message': 'Product ID is required'}, status=400)
 
         try:
             size_id = int(size_id) if size_id else None
             product_id = int(product_id)
         except (ValueError, TypeError):
-            return JsonResponse({'status': 400, 'messages': 'Invalid size ID or product ID'}, status=400)
+            return JsonResponse({'status': 400, 'message': 'Invalid size ID or product ID'}, status=400)
 
-        # Query variants based on the provided size_id and product_id
+        # Filter conditions based on product_id and optionally size_id  
         filter_conditions = {'product_id': product_id}
         if size_id:
             filter_conditions['size_id'] = size_id
 
-        variants = Variants.objects.filter(**filter_conditions).select_related('size', 'color')
+        variants = list(Variants.objects.filter(**filter_conditions).select_related('size', 'color'))
 
-        # Build the colors list from the variants
+        if not variants:
+            return JsonResponse({'status': 404, 'message': 'No variants available'}, status=404)
+
         colors = [
             {
-                'id': getattr(variant.color, 'id', None),
-                'title': getattr(variant.color, 'title', 'Unknown Color'),
-                'code': getattr(variant.color, 'code', '#000000'),
-                'image': variant.image or 'No Image Available',
-                'price': variant.price
+                'id': variant.color.id,
+                'title': variant.color.title,
+                'code': variant.color.code,
+                'image': variant.image if variant.image else '',
+                'price': str(variant.price)
             }
             for variant in variants if variant.color
         ]
+        
+        # ** Just size available but no color available **
+        if size_id and not colors:
+            selected_size = Size.objects.filter(id=size_id).first()
+            selected_price = str(variants[0].price) if variants else "0.00"
+            return JsonResponse({
+                'status': 200,
+                'colors': [],
+                'selected_size_title': selected_size.title if selected_size else "",
+                'selected_price': selected_price,
+                'message': f'Only size available: {selected_size.title if selected_size else "Unknown"}'
+            })
 
-        # Handle default values for size and color
-        if variants:
-            selected_size_title = variants[0].size.title if size_id else "Unknown Size"
-            selected_price = variants[0].price if size_id else None
-            selected_color_title = colors[0]['title'] if colors else "Unknown Color"
-            selected_color_id = colors[0]['id'] if colors else None
-        else:
-            selected_size_title = "Unknown Size"
-            selected_color_title = "Unknown Color"
-            selected_price = None
-            selected_color_id = None
+        # ** Just color available but no size available **
+        if not size_id and colors:
+            return JsonResponse({
+                'status': 200,
+                'colors': colors,
+                'selected_size_title': "",
+                'selected_price': colors[0]['price'] if colors else "0.00",
+                'message': 'Only colors available'
+            })
 
-        # Prepare response message and status code
+        # ** Both size and color are available **
         if colors:
-            message = f'Colors available for size {selected_size_title}' if size_id else 'Only colors available'
-            status = 200
-        elif size_id:
-            message = f'Only size available: {selected_size_title}'
-            status = 200
-        else:
-            message = "No colors available"
-            status = 404
+            selected_size_title = variants[0].size.title if size_id and variants else ""
+            return JsonResponse({
+                'status': 200,
+                'colors': colors,
+                'selected_size_title': selected_size_title,
+                'selected_price': colors[0]['price'],
+                'message': f'Colors available for size {selected_size_title}'
+            })
 
-        # Return JSON response with the colors and selected attributes
-        return JsonResponse({
-            'colors': colors,
-            'selected_size_title': selected_size_title,
-            'selected_price': selected_price,
-            'selected_color_title': selected_color_title,
-            'selected_size_id': size_id,
-            'selected_color_id': selected_color_id,
-            'status': status,
-            'messages': message
-        }, status=status)
-   
+        # ** Nothing available **
+        return JsonResponse({'status': 404, 'message': 'No variants available'}, status=404)
+
+
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
@@ -172,7 +175,7 @@ class ReviewsView(LoginRequiredMixin, generic.View):
                 if not review_id:
                     existing_review = Review.objects.filter(product=product, user=request.user).first()
                     if existing_review:
-                            return JsonResponse({"status": 400, "messages": "You have already reviewed this product."})
+                            return JsonResponse({"status": 400, "messages": "You have already reviewed this product."}, status=400)
                 
                 if review_id:  # Editing an existing review
                     review = get_object_or_404(Review, id=review_id, user_id=request.user.id)
@@ -198,8 +201,8 @@ class ReviewsView(LoginRequiredMixin, generic.View):
                     "rate": review.rate,  
                     "updated_date": review.updated_date.strftime('%Y-%m-%d %H:%M:%S'),
                     "messages": "Review added successfully"
-                })
+                } , status=200)
             except Review.DoesNotExist:
-                return JsonResponse({"status": 400, "messages": "Review not found for this user"})
+                return JsonResponse({"status": 400, "messages": "Review not found for this user"}, status=400)
             except Exception as e:
-                return JsonResponse({"status": 400, "messages": str(e)})
+                return JsonResponse({"status": 400, "messages": str(e)}, status=400)
