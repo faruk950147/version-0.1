@@ -37,8 +37,7 @@ class HomeView(generic.View):
 class SingleProductView(generic.View):
     def get(self, request, id):
         product = get_object_or_404(Product.objects.prefetch_related('product_variants'), id=id)
-
-        related_products = Product.objects.filter(category=product.category).exclude(id=product.id).select_related('category').prefetch_related('product_variants__color', 'product_variants__size').order_by('-id')[:4]
+        related_products = Product.objects.filter(category=product.category).exclude(id=product.id).select_related('category').prefetch_related('product_variants', 'product_variants__color', 'product_variants__size').order_by('-id')[:4]
 
         reviews = Review.objects.filter(product=product, status=True).select_related('user').prefetch_related('product')
         reviews_total = reviews.count()
