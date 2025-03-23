@@ -26,7 +26,10 @@ class Category(models.Model):
 
     @property
     def image_tag(self):
-        return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>' if self.image else '<span>No Image</span>')
+        try:
+            return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>')
+        except AttributeError:
+            return mark_safe('<span>No Image</span>')
 
     def __str__(self):
         return f'{self.title} - {"Active" if self.status else "Inactive"}'
@@ -46,7 +49,10 @@ class Brand(models.Model):
 
     @property
     def image_tag(self):
-        return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>' if self.image else '<span>No Image</span>')
+        try:
+            return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>')
+        except AttributeError:
+            return mark_safe('<span>No Image</span>')
 
     def __str__(self):
         return f'{self.title} - {"Active" if self.status else "Inactive"}'
@@ -121,7 +127,10 @@ class Images(models.Model):
 
     @property
     def image_tag(self):
-        return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>' if self.image else '<span>No Image</span>')
+        try:
+            return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>')
+        except AttributeError:
+            return mark_safe('<span>No Image</span>')
 
     def __str__(self):
         return self.product.title
@@ -179,10 +188,11 @@ class Variants(models.Model):
 
     @property
     def image(self):
-        if self.image_id:
-            img = Images.objects.filter(id=self.image_id).first()
-            return img.image.url if img and img.image else "No Image"
-        return "No Image"
+        try:
+            img = Images.objects.get(id=self.image_id)
+            return img.image.url if img.image else "No Image"
+        except Images.DoesNotExist:
+            return "No Image"
     
     @property
     def image_tag(self):
@@ -193,7 +203,7 @@ class Variants(models.Model):
         except Images.DoesNotExist:
             return mark_safe('<span>No Image</span>')
 
-class  Slider(models.Model):
+class Slider(models.Model):
     product = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, blank=True, related_name='top_sliders')
     title = models.CharField(max_length=150, unique=True, null=False, blank=False)
     image = models.ImageField(upload_to='slider', null=True, blank=True)
@@ -206,11 +216,11 @@ class  Slider(models.Model):
         verbose_name_plural = '08. Sliders'
         
     @property
-    def image_tag(self):   
-        if self.image:
-            return mark_safe('<img src="%s" width="50" height="50"/>' % (self.image.url))
-        else:
-            return  mark_safe('<span>No Image</span>') 
+    def image_tag(self):
+        try:
+            return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>')
+        except AttributeError:
+            return mark_safe('<span>No Image</span>')
 
     def __str__(self):
         return f'{self.title}'
@@ -230,11 +240,11 @@ class Banner(models.Model):
         verbose_name_plural = '09. Banners'
         
     @property
-    def image_tag(self):   
-        if self.image:
-            return mark_safe('<img src="%s" width="50" height="50"/>' % (self.image.url))
-        else:
-            return mark_safe('<span>No Image</span>') 
+    def image_tag(self):
+        try:
+            return mark_safe(f'<img src="{self.image.url}" width="50" height="50"/>')
+        except AttributeError:
+            return mark_safe('<span>No Image</span>')
 
     def __str__(self):
         return f'{self.title}'
