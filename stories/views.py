@@ -37,7 +37,8 @@ class HomeView(generic.View):
 class SingleProductView(generic.View):
     def get(self, request, id):
         product = get_object_or_404(Product.objects.prefetch_related('product_variants'), id=id)
-        related_products = Product.objects.filter(category=product.category).exclude(id=product.id).select_related('category').prefetch_related('product_variants', 'product_variants__color', 'product_variants__size').order_by('-id')[:4]
+
+        related_products = Product.objects.filter(category=product.category).exclude(id=product.id).select_related('category').prefetch_related('product_variants__color', 'product_variants__size').order_by('-id')[:4]
 
         reviews = Review.objects.filter(product=product, status=True).select_related('user').prefetch_related('product')
         reviews_total = reviews.count()
@@ -47,25 +48,40 @@ class SingleProductView(generic.View):
         size_variants = variants.filter(size__isnull=False).order_by('size')
         color_variants = variants.filter(color__isnull=False).order_by('color')
 
+        # Creating unique size and color dictionaries
         unique_sizes = {variant.size.id: {'size': variant.size, 'image': variant.image or 'No Image Available', 'price': variant.price} for variant in size_variants}
         unique_colors = {variant.color.id: {'color': variant.color, 'image': variant.image or 'No Image Available', 'price': variant.price} for variant in color_variants}
 
-        # Replace first() with direct list indexing
-        first_size_variant = size_variants[0] if size_variants else None
-        first_color_variant = color_variants[0] if color_variants else None
+        # Selecting the size_variants[0] size and color variant for default selection
+        if size_variants.exists():
+            selected_size_variant = size_variants[0]
+            selected_size_id = selected_size_variant.size_id
+            selected_size_title = selected_size_variant.size.title
+            selected_size_image = selected_size_variant.image or 'No Image Available'
+            selected_price = selected_size_variant.price
+        else:
+            selected_size_id = None
+            selected_size_title = "No Size Selected"
+            selected_size_image = 'No Image Available'
+            selected_price = None
 
-        selected_size_id = first_size_variant.size_id if first_size_variant and first_size_variant.size else None
-        selected_color_id = first_color_variant.color_id if first_color_variant and first_color_variant.color else None
-
-        selected_size_title = first_size_variant.size.title if first_size_variant and first_size_variant.size else None
-        selected_color_title = first_color_variant.color.title if first_color_variant and first_color_variant.color else None
-        selected_price = first_size_variant.price if first_size_variant else None
+        if color_variants.exists():
+            selected_color_variant = color_variants[0]
+            selected_color_id = selected_color_variant.color_id
+            selected_color_title = selected_color_variant.color.title
+            selected_color_image = selected_color_variant.image or 'No Image Available'
+        else:
+            selected_color_id = None
+            selected_color_title = "No Color Selected"
+            selected_color_image = 'No Image Available'
 
         context = {
             'product': product,
             'related_products': related_products,
             'reviews': reviews,
             'reviews_total': reviews_total,
+            'average_review': product.average_review,
+            'count_review': product.count_review,
             'unique_sizes': unique_sizes,
             'unique_colors': unique_colors,
             'selected_size_title': selected_size_title,
@@ -73,6 +89,8 @@ class SingleProductView(generic.View):
             'selected_price': selected_price,
             'selected_size_id': selected_size_id,
             'selected_color_id': selected_color_id,
+            'selected_size_image': selected_size_image,
+            'selected_color_image': selected_color_image,
         }
         return render(request, 'stories/single.html', context)
 
