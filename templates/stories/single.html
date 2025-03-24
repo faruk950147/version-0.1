@@ -170,7 +170,8 @@
 										<span>${color.title} ($${color.price})</span>
 									</div>`;
 								});
-			
+								$("#selected_size_id").val(res.selected_size_id);
+								$("#selected_color_id").val(res.selected_color_id);
 								$(".selected-size").text("Selected Size: " + res.selected_size_title);
 								$(".selected-color").text("Selected Color: " + res.selected_color_title);
 								$(".selected-price").text("Selected Price: " + res.selected_price);
@@ -209,9 +210,9 @@
 
 				// Update hidden input field with selected color
 				$("#selected_color_id").val($(this).val());
+				console.log('selected_color_id', selected_color_id);
 			});
 
-			console.log('selected_size_id',selected_size_id, 'selected_color_id', selected_color_id, "", $("#selected_size_id").val(), $("#selected_color_id").val());
 
 
 		});
