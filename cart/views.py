@@ -14,7 +14,7 @@ from cart.forms import (
     CartForm
 )
 from stories.models import (
-    Product
+    Product, Variants
 )
 from cart.models import (
     Cart
@@ -25,8 +25,30 @@ from cart.models import (
 class AddTtoCart(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
     def post(self, request):
-        pass
-    
+        if request.method == "POST":
+            try:
+                data = json.loads(request.body)
+                product_id = data.get("product_id")
+                size_id = data.get("size_id")
+                color_id = data.get("color_id")
+                quantity = data.get("quantity")
+                product = Product.objects.get(id=product_id)    
+                variant = Variants.objects.filter(product=product, size_id=size_id, color_id=color_id).first()
+                Cart.objects.create(user=request.user, product=product, variant=variant, quantity=quantity)
+                return JsonResponse({
+                    'status': 200,
+                    'messages': 'Item added to cart successfully!'
+                })
+            except Exception as e:
+                return JsonResponse({
+                    'status': 400,
+                    'message': str(e)
+                })
+        return JsonResponse({
+            'status': 400,
+            'message': 'Invalid request method.'
+        })  
+        
 
 @method_decorator(never_cache, name='dispatch')
 class CartView(LoginRequiredMixin, generic.View):
