@@ -130,7 +130,7 @@
 												{% endif %}
 											</div>
 											<div class="product-body">
-												<h3 class="product-price">$ {{cart_products.quantity_price}} <span class="qty">x {{cart_products.quantity}}</span></h3>
+												<h3 class="product-price">$ {{cart_products.qty_total_price}} <span class="qty">x {{cart_products.quantity}}</span></h3>
 												<h2 class="product-name"><a href="#">{{cart_products.product.title}}</a></h2>
 											</div>
 											<button class="cancel-btn"><i class="fa fa-trash"></i></button>
@@ -138,7 +138,7 @@
 										{% endfor %}
 									</div>
 									<div class="shopping-cart-btns">
-										<a href="" class="main-btn">View Cart <i class="fa fa-arrow-circle-right"></i></a>
+										<a href="{% url "cartview" %}" class="main-btn">View Cart <i class="fa fa-arrow-circle-right"></i></a>
 										<a href="" class="main-btn">Checkout <i class="fa fa-arrow-circle-right"></i></a>
 									</div>
 								</div>
