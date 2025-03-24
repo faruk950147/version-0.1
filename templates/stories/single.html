@@ -210,11 +210,24 @@
 
 				// Update hidden input field with selected color
 				$("#selected_color_id").val($(this).val());
-				console.log('selected_color_id', selected_color_id);
 			});
 
 
+			$(document).on("submit", "#addToCartForm", function(e) {
+				e.preventDefault();  // Prevent form from submitting traditionally
+			
+				// Get form values
+				let product_id = $("#product_id").val();
+				let size_id = $("#selected_size_id").val();
+				let color_id = $("#selected_color_id").val();
+				let quantity = $(".quantity").val();
+			
+				console.log('product_id', product_id);
+				console.log('size_id', size_id);
+				console.log('color_id', color_id);
+				console.log('quantity', quantity);
 
+			});
 		});
 	</script>
 {% endblock extra_scripts %}	
