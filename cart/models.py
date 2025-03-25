@@ -13,7 +13,7 @@ class Coupon(models.Model):
     minimum_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['id']
         verbose_name_plural = '01. Coupons'
 
     def __str__(self):
