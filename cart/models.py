@@ -39,13 +39,11 @@ class Cart(models.Model):
         """Returns the price of the variant if available; otherwise, returns the base product price."""
         return Decimal(str(self.variant.price if self.variant else self.product.price)) or Decimal('0.00')
 
-
     @property
     def qty_total_price(self):
         """Calculates the total price based on unit price and quantity."""
         return self.quantity * self.single_price  # `self.single_price` is already a Decimal
 
- 
     @property
     def discount_price(self):
         """Calculate price after coupon discount is applied."""
@@ -55,13 +53,17 @@ class Cart(models.Model):
             return self.qty_total_price - discount
         return self.qty_total_price
 
-
     @property
     def total(self):
-        """Calculate total price after discount."""
-        total_price_after_discount = self.qty_total_price - self.discount_price
-        return max(total_price_after_discount, Decimal('0.00'))  # Ensure total doesn't go below zero
+        """Calculate the total price of all products in the user's cart."""
+        carts = Cart.objects.filter(user=self.user)  # Get all carts for this user
+        total = Decimal('0.00')
 
+        # Sum the total for each cart item
+        for cart in carts:
+            total += cart.discount_price  # Sum the discount price
+
+        return total
 
     def __str__(self):
         variant_info = f" - {self.variant.title}" if self.variant else ""
