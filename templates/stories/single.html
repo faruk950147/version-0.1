@@ -139,8 +139,7 @@
 			});
 
 
-
-			
+			// Get the product ID
 			let selected_size_id = $("#selected_size_id").val(); 
 			let selected_color_id = $("#selected_color_id").val();
 
@@ -215,13 +214,13 @@
 
 			$(document).on("submit", "#addToCartForm", function(e) {
 				e.preventDefault();  // Prevent form from submitting traditionally
-			
-				// Get form values
-				let product_id = $("#product_id").val();
-				let size_id = $("#selected_size_id").val();
-				let color_id = $("#selected_color_id").val();
-				let quantity = $(".quantity").val();
+		
+				let size_id = $("#addToCartForm #size-select").val()
+				let color_id = $("#addToCartForm input[name='color-select']:checked").val()
+				let quantity = $("#addToCartForm input[name='quantity']").val();
 				let csrfmiddlewaretoken = $('#addToCartForm input[name=csrfmiddlewaretoken]').val();
+				let product_id = $("#product_id").val();
+
 
 				$.ajax({
 					url: "{% url 'addtocart' %}",
@@ -239,6 +238,10 @@
 						else if(res.status == 400){
 							alertify.error(res.messages)
 						}
+					},
+
+					error: function(res) {
+						alertify.error(res.messages)
 					}
 				});
 			});

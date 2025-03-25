@@ -38,8 +38,8 @@
 										<td class="details">
 											<a href="#">{{cart_products.product.title}}</a>
 											<ul>
-												<li><span>Size: XL</span></li>
-												<li><span>Color: Camelot</span></li>
+												<li><span>Size: {% if cart_products.variant.size %}{{cart_products.variant.size}}  {% else %} No Size {% endif %} </span></li>
+												<li><span>Color: {% if cart_products.variant.color %}{{cart_products.variant.color}} {% else %} No Color {% endif %}</span></li>
 											</ul>
 										</td>
 										<td class="price text-center">

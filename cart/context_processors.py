@@ -8,9 +8,8 @@ from stories.models import (
 
 def get_filters(request):
     cart_products = Cart.objects.filter(user_id=request.user.id)
-    qty_total_price = 0
-    for cart_product in cart_products:
-        qty_total_price += cart_product.product.price * cart_product.quantity
+    
+    qty_total_price = sum(cart_product.single_price * cart_product.quantity for cart_product in cart_products)
 
     return {
         'cart_products': cart_products,

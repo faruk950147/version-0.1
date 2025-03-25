@@ -1,10 +1,10 @@
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
 from cart.views import (
-    AddTtoCart, CartView, QuantityIncDec, RemoveToCart
+    AddToCart, CartView, QuantityIncDec, RemoveToCart
 )
 urlpatterns = [
-    path('addtocart/', AddTtoCart.as_view(), name='addtocart'),
+    path('addtocart/', AddToCart.as_view(), name='addtocart'),
     path('cartview/', CartView.as_view(), name='cartview'),
     path("qtyincdec/", csrf_exempt(QuantityIncDec.as_view()), name="qtyincdec"),
     path('removetocart/', csrf_exempt(RemoveToCart.as_view()), name="removetocart")
