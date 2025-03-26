@@ -89,7 +89,7 @@ class AddToCart(LoginRequiredMixin, generic.View):
 
 
 @method_decorator(never_cache, name='dispatch')
-class CartView(LoginRequiredMixin, View):
+class CartView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
 
     def get(self, request):
