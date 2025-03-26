@@ -88,15 +88,6 @@ class AddToCart(LoginRequiredMixin, generic.View):
         return JsonResponse({'status': 400, 'messages': 'Invalid request'})
 
 
-import json
-from django.http import JsonResponse
-from django.utils.decorators import method_decorator
-from django.views import View
-from django.views.decorators.cache import never_cache
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import get_object_or_404
-from .models import Cart, Coupon
-
 @method_decorator(never_cache, name='dispatch')
 class CartView(LoginRequiredMixin, View):
     login_url = reverse_lazy('sign')
@@ -141,7 +132,6 @@ class CartView(LoginRequiredMixin, View):
         except json.JSONDecodeError:
             return JsonResponse({'status': 400, 'messages': 'Invalid data format.'})
 
-    
     
 @method_decorator(never_cache, name='dispatch')
 class QuantityIncDec(LoginRequiredMixin, generic.View):
