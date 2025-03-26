@@ -169,6 +169,7 @@
 						$(".cart-total-price").text("$ " + res.cart_total);
 						$(".sub-total").text("$ " + res.sub_total);
 						$(".finale-price").text("$ " + res.finale_price);
+						$(".cart-count").text(res.cart_count);
 						alertify.success(res.messages);
 					}
 					else if (res.status == 400) {
