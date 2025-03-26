@@ -57,9 +57,6 @@ class AddToCart(LoginRequiredMixin, generic.View):
                 if existing_cart_item:
                     # Check if the previous quantity + new quantity <= stock
                     new_quantity = existing_cart_item.quantity + quantity
-                    if new_quantity <= 0:
-                        return JsonResponse({"status": 400, "messages": "Quantity cannot be zero or negative!"})
-
                     if new_quantity <= max_stock:
                         existing_cart_item.quantity = new_quantity
                         existing_cart_item.save()
@@ -73,18 +70,30 @@ class AddToCart(LoginRequiredMixin, generic.View):
                     else:
                         return JsonResponse({"status": 400, "messages": f"Cannot add more than {max_stock} units!"})
 
-                # cart count update
-                cart_count = Cart.objects.filter(user=request.user).count()
+                # Cart count update
+                cart_products = Cart.objects.filter(user=request.user)
+                cart_count = cart_products.aggregate(Sum('quantity'))['quantity__sum'] or 0
 
-                return JsonResponse({'status': 200, 'messages': messages, 'cart_count': cart_count})
-            
+                # Total price of the cart
+                cart_total = sum(item.quantity * item.single_price for item in cart_products)
+                finale_price = cart_total + 150  # Delivery charge 150
+
+                return JsonResponse({
+                    'status': 200,
+                    'messages': messages,
+                    'cart_count': cart_count,
+                    'cart_total': cart_total,
+                    'finale_price': finale_price,
+                    'qty_total_price': existing_cart_item.quantity * existing_cart_item.single_price if existing_cart_item else quantity * product.price
+                })
+
             except ValueError as e:
                 return JsonResponse({'status': 400, 'messages': f"ValueError: {str(e)}"})
             except TypeError as e:
                 return JsonResponse({'status': 400, 'messages': f"TypeError: {str(e)}"})
             except Exception as e:
                 return JsonResponse({'status': 400, 'messages': f"Unexpected error: {str(e)}"})
-        
+
         return JsonResponse({'status': 400, 'messages': 'Invalid request'})
 
 

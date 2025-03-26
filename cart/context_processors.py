@@ -7,13 +7,14 @@ from stories.models import (
 )
 
 def get_filters(request):
-    cart_products = Cart.objects.filter(user_id=request.user.id)
-
+    cart_products = Cart.objects.filter(user=request.user)
+    cart_count = cart_products.count()
     # if discount price is less than qty_total_price then use discount_price otherwise use qty_total_price
     total_price = sum(cart_product.discount_price if cart_product.discount_price < cart_product.qty_total_price else cart_product.qty_total_price for cart_product in cart_products)
 
     return {
         'cart_products': cart_products,
+        'cart_count': cart_count,
         'qty_total_price': total_price,  
         'sub_total': total_price,  
         'finale_price': total_price + 150,  
