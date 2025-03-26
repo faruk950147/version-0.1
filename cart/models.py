@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from decimal import Decimal
+from django.db.models import Sum
 from stories.models import Product, Variants
 
 # Custom User model import
@@ -56,15 +57,10 @@ class Cart(models.Model):
     @property
     def total(self):
         """Calculate the total price of all products in the user's cart."""
-        carts = Cart.objects.filter(user=self.user)  # Get all carts for this user
-        total = Decimal('0.00')
-
-        # Sum the total for each cart item
-        for cart in carts:
-            total += cart.discount_price  # Sum the discount price
-
+        carts = Cart.objects.filter(user=self.user)
+        total = sum(cart.discount_price for cart in carts)  # Sum using a Python generator expression
         return total
-
+    
     def __str__(self):
         variant_info = f" - {self.variant.title}" if self.variant else ""
         return f"{self.user.username} - {self.product.title}{variant_info} (Qty: {self.quantity})"
