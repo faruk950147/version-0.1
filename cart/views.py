@@ -17,7 +17,7 @@ from stories.models import (
     Product, Variants
 )
 from cart.models import (
-    Cart
+    Cart, Coupon
 )
 
 # Create your views here.
@@ -88,17 +88,61 @@ class AddToCart(LoginRequiredMixin, generic.View):
         return JsonResponse({'status': 400, 'messages': 'Invalid request'})
 
 
+import json
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.cache import never_cache
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
+from .models import Cart, Coupon
+
 @method_decorator(never_cache, name='dispatch')
-class CartView(LoginRequiredMixin, generic.View):
+class CartView(LoginRequiredMixin, View):
     login_url = reverse_lazy('sign')
 
     def get(self, request):
+        return render(request, 'cart/cart.html', {})
 
-        context = {
-        }
-        return render(request, 'cart/cart.html', context)
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+            coupon_code = data.get("coupon_code", "").strip()
 
+            # check coupon code is valid or not
+            try:
+                coupon = Coupon.objects.get(coupon_code=coupon_code, is_expired=False)
+            except Coupon.DoesNotExist:
+                return JsonResponse({'status': 400, 'messages': 'Invalid coupon code.'})
 
+            # user's cart products
+            cart_products = Cart.objects.filter(user=request.user)
+
+            # total order amount
+            total_amount = sum(cart.qty_total_price for cart in cart_products)
+
+            # check coupon is valid or not
+            if coupon.is_valid(total_amount):
+                cart_products.update(coupon=coupon)
+
+                # **Cart model's discount_price property is used**
+                discounted_total = sum(cart.discount_price for cart in cart_products)
+                discount_amount = total_amount - discounted_total  # calculate actual discount amount
+
+                return JsonResponse({
+                    'status': 200,
+                    'messages': 'Coupon applied successfully.',
+                    'discount_amount': str(discount_amount),  # for JSON, `Decimal` is converted to `str()`
+                    'total_price_after_discount': str(discounted_total)
+                })
+            else:
+                return JsonResponse({'status': 400, 'messages': 'Coupon cannot be applied. Minimum amount not reached.'})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 400, 'messages': 'Invalid data format.'})
+
+    
+    
 @method_decorator(never_cache, name='dispatch')
 class QuantityIncDec(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')

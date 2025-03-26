@@ -73,6 +73,21 @@
 								<tfoot>
 									<tr>
 										<th class="empty" colspan="3"></th>
+										<th>COUPON</th>
+										<th colspan="2" class="coupon-form">
+											<form method="POST" id="coupon-form" class="form-inline">
+												<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+												<input type="text" class="form-control" placeholder="Coupon Code" name="coupon_code" id="coupon_code">
+												<button type="submit" class="primary-btn">
+													<i class="fa-solid fa-arrow-right-from-bracket"></i> Apply
+												</button>
+											</form>
+										</th>
+									</tr>
+								</tfoot>
+								<tfoot>
+									<tr>
+										<th class="empty" colspan="3"></th>
 										<th>SUBTOTAL</th>
 										<th colspan="2" class="sub-total">$ {{sub_total}}</th>
 									</tr>	
@@ -180,6 +195,33 @@
 
 		});
 		// Remove item from cart
+
+		// Apply coupon
+		$(document).on("submit", "#coupon-form", function(e){
+			e.preventDefault();
+			let coupon_code = $("#coupon_code").val();
+			let csrfmiddlewaretoken = $('input[name=csrfmiddlewaretoken]').val();
+
+			$.ajax({
+				url: "{% url 'cartview' %}",
+				method: "POST",
+				headers: {
+					"X-CSRFToken": csrfmiddlewaretoken,
+				},
+				data: JSON.stringify({"coupon_code": coupon_code}),
+				contentType: "application/json",
+				dataType: "json",
+				success: function(res){
+					if(res.status == 200){
+						alertify.success(res.messages);
+					}
+					else if (res.status == 400) {
+						alertify.error(res.messages);
+					}
+				}
+			});
+		});
+		// Apply coupon
 
 	});
 </script>
