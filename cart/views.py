@@ -72,20 +72,11 @@ class AddToCart(LoginRequiredMixin, generic.View):
 
                 # Cart count update
                 cart_products = Cart.objects.filter(user=request.user)
-                cart_count = cart_products.aggregate(Sum('quantity'))['quantity__sum'] or 0
+                cart_count = cart_products.count()
 
                 # Total price of the cart
                 cart_total = sum(item.quantity * item.single_price for item in cart_products)
-                finale_price = cart_total + 150  # Delivery charge 150
-
-                return JsonResponse({
-                    'status': 200,
-                    'messages': messages,
-                    'cart_count': cart_count,
-                    'cart_total': cart_total,
-                    'finale_price': finale_price,
-                    'qty_total_price': existing_cart_item.quantity * existing_cart_item.single_price if existing_cart_item else quantity * product.price
-                })
+                return JsonResponse({'status': 200, 'messages': messages, 'cart_count': cart_count, 'cart_total': cart_total})
 
             except ValueError as e:
                 return JsonResponse({'status': 400, 'messages': f"ValueError: {str(e)}"})
@@ -134,21 +125,13 @@ class QuantityIncDec(LoginRequiredMixin, generic.View):
                     if cart_product.quantity < max_stock:
                         cart_product.quantity += 1
                     else:
-                        return JsonResponse({
-                            'status': 400,
-                            'messages': f"Cannot add more than {max_stock} units of this product!",
-                            'quantity': cart_product.quantity
-                        })
+                        return JsonResponse({'status': 400,'messages': f"Cannot add more than {max_stock} units of this product!", 'quantity': cart_product.quantity})
 
                 elif action == "decrease":
                     if cart_product.quantity > 1:
                         cart_product.quantity -= 1
                     else:
-                        return JsonResponse({
-                            'status': 400,
-                            'messages': "Quantity cannot be less than 1!",
-                            'quantity': cart_product.quantity
-                        })
+                        return JsonResponse({'status': 400, 'messages': "Quantity cannot be less than 1!", 'quantity': cart_product.quantity})
 
                 # Save the updated cart item
                 cart_product.save()
@@ -161,7 +144,7 @@ class QuantityIncDec(LoginRequiredMixin, generic.View):
                 finale_price = cart_total + 150  # Delivery charge 150
 
                 # **Cart Counter Update**
-                cart_count = cart_products.aggregate(Sum('quantity'))['quantity__sum'] or 0
+                cart_count = cart_products.count()
 
                 return JsonResponse({
                     "status": 200,
@@ -211,17 +194,11 @@ class RemoveToCart(LoginRequiredMixin, generic.View):
                 finale_price = cart_total + 150 
 
                 # **Cart Counter Update**
-                cart_count = cart_products.aggregate(Sum('quantity'))['quantity__sum'] or 0
+                cart_count = cart_products.count()
 
                 return JsonResponse({
-                    "status": 200,
-                    "messages": "Product removed successfully!",
-                    "cart_total": cart_total,
-                    "qty_total_price": qty_total_price,  
-                    "sub_total": cart_total,  
-                    "finale_price": finale_price, 
-                    "id": cart_item_id,
-                    "cart_count": cart_count 
+                    "status": 200, "messages": "Product removed successfully!", "cart_total": cart_total, "qty_total_price": qty_total_price,
+                    "sub_total": cart_total, "finale_price": finale_price, "id": cart_item_id, "cart_count": cart_count
                 })
 
             except Exception as e:

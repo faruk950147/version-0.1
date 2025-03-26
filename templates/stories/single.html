@@ -235,10 +235,7 @@
 						if(res.status == 200){
 							alertify.success(res.messages)
 							$('.cart-count').text(res.cart_count)
-							$('.cart-total-price').text(res.qty_total_price)
-							console.log(res.cart_count)
-							console.log(res.qty_total_price)
-							console.log(res)
+							$('.cart-total-price').text(res.cart_total)
 						}
 						else if(res.status == 400){
 							alertify.error(res.messages)
