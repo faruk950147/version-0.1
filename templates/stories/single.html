@@ -234,14 +234,17 @@
 					success: function(res) {
 						if(res.status == 200){
 							alertify.success(res.messages)
+							console.log(res.messages)
 						}
 						else if(res.status == 400){
 							alertify.error(res.messages)
+							console.log(res.messages)
 						}
 					},
 
 					error: function(res) {
 						alertify.error(res.messages)
+						console.log(res.messages)
 					}
 				});
 			});
