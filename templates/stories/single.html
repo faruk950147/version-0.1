@@ -234,7 +234,7 @@
 					success: function(res) {
 						if(res.status == 200){
 							alertify.success(res.messages)
-							console.log(res.messages)
+							console.log(res.cart_count)
 						}
 						else if(res.status == 400){
 							alertify.error(res.messages)

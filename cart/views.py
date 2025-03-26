@@ -8,7 +8,7 @@ from django.contrib import messages
 from django.views import generic
 from django.utils import timezone
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
-from django.db.models import Min, Max
+from django.db.models import Min, Max, Sum
 import json
 from cart.forms import (
     CartForm
@@ -24,7 +24,6 @@ from cart.models import (
 @method_decorator(never_cache, name='dispatch')
 class AddToCart(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
-
     def post(self, request):
         if request.method == "POST":
             try:
@@ -33,6 +32,7 @@ class AddToCart(LoginRequiredMixin, generic.View):
                 color_id = data.get("color_id")
                 quantity = data.get("quantity")
                 product_id = data.get("product_id")
+
                 # Make sure quantity is an integer
                 try:
                     quantity = int(quantity)
@@ -40,20 +40,26 @@ class AddToCart(LoginRequiredMixin, generic.View):
                         return JsonResponse({"status": 400, "messages": "Quantity must be greater than 0!"})
                 except (ValueError, TypeError):
                     return JsonResponse({"status": 400, "messages": "Invalid quantity value!"})
+
                 # Find the product and variant
                 product = get_object_or_404(Product, id=product_id)
                 variant = Variants.objects.filter(product=product, size_id=size_id, color_id=color_id).first()
+
                 # Check if variant exists, and if not, check product stock
                 if not variant and product.in_stock_max <= 0:
                     return JsonResponse({"status": 400, "messages": "Product is out of stock!"})
+
                 max_stock = variant.quantity if variant else product.in_stock_max
+
                 # If the product already exists in the cart
                 existing_cart_item = Cart.objects.filter(user=request.user, product=product, variant=variant if variant else None).first()
+
                 if existing_cart_item:
                     # Check if the previous quantity + new quantity <= stock
                     new_quantity = existing_cart_item.quantity + quantity
                     if new_quantity <= 0:
                         return JsonResponse({"status": 400, "messages": "Quantity cannot be zero or negative!"})
+
                     if new_quantity <= max_stock:
                         existing_cart_item.quantity = new_quantity
                         existing_cart_item.save()
@@ -66,7 +72,8 @@ class AddToCart(LoginRequiredMixin, generic.View):
                         messages = "Product added to cart successfully!"
                     else:
                         return JsonResponse({"status": 400, "messages": f"Cannot add more than {max_stock} units!"})
-                # calculate cart count
+
+                # cart count update
                 cart_count = Cart.objects.filter(user=request.user).count()
 
                 return JsonResponse({'status': 200, 'messages': messages, 'cart_count': cart_count})
@@ -84,17 +91,18 @@ class AddToCart(LoginRequiredMixin, generic.View):
 @method_decorator(never_cache, name='dispatch')
 class CartView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
+
     def get(self, request):
 
         context = {
         }
         return render(request, 'cart/cart.html', context)
 
-from django.db.models import Sum
 
 @method_decorator(never_cache, name='dispatch')
 class QuantityIncDec(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
+    
     def post(self, request):
         if request.method == "POST":
             try:
@@ -107,7 +115,7 @@ class QuantityIncDec(LoginRequiredMixin, generic.View):
                     return JsonResponse({"status": 400, "messages": "Invalid action!"})
 
                 # Find the product in the cart
-                cart_product = get_object_or_404(Cart, id=cart_item_id, user=request.user.id)
+                cart_product = get_object_or_404(Cart, id=cart_item_id, user=request.user)
 
                 # Determine the maximum stock limit
                 max_stock = cart_product.variant.quantity if cart_product.variant else cart_product.product.in_stock_max
@@ -137,7 +145,7 @@ class QuantityIncDec(LoginRequiredMixin, generic.View):
                 cart_product.save()
 
                 # Load all cart items for the user
-                cart_products = Cart.objects.filter(user=request.user.id)
+                cart_products = Cart.objects.filter(user=request.user)
 
                 # Calculate the total price of the cart
                 cart_total = sum(item.quantity * item.single_price for item in cart_products)
@@ -151,11 +159,11 @@ class QuantityIncDec(LoginRequiredMixin, generic.View):
                     "messages": f"Quantity updated successfully! {cart_product.quantity}",
                     "quantity": cart_product.quantity,
                     "cart_total": cart_total,
-                    "qty_total_price": cart_product.single_price * cart_product.quantity,  
+                    "qty_total_price": cart_product.single_price * cart_product.quantity, 
                     "sub_total": cart_total,
-                    "finale_price": finale_price, 
+                    "finale_price": finale_price,
                     "id": cart_item_id,
-                    "cart_count": cart_count 
+                    "cart_count": cart_count  
                 })
 
             except Exception as e:
@@ -204,7 +212,7 @@ class RemoveToCart(LoginRequiredMixin, generic.View):
                     "sub_total": cart_total,  
                     "finale_price": finale_price, 
                     "id": cart_item_id,
-                    "cart_count": cart_count  # **Newly Added**
+                    "cart_count": cart_count 
                 })
 
             except Exception as e:

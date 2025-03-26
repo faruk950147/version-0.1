@@ -371,7 +371,7 @@ class ProfileView(LoginRequiredMixin, generic.View):
             user.username = username
             user.email = email
             user.save()
-            user_p = get_object_or_404(Profile, user=request.user.id)
+            user_p = get_object_or_404(Profile, user=request.user)
             user_p.country = country
             user_p.city = city
             user_p.home_city = home_city
