@@ -24,6 +24,7 @@ from cart.models import (
 @method_decorator(never_cache, name='dispatch')
 class AddToCart(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
+
     def post(self, request):
         if request.method == "POST":
             try:
@@ -32,7 +33,6 @@ class AddToCart(LoginRequiredMixin, generic.View):
                 color_id = data.get("color_id")
                 quantity = data.get("quantity")
                 product_id = data.get("product_id")
-
                 # Make sure quantity is an integer
                 try:
                     quantity = int(quantity)
@@ -40,26 +40,20 @@ class AddToCart(LoginRequiredMixin, generic.View):
                         return JsonResponse({"status": 400, "messages": "Quantity must be greater than 0!"})
                 except (ValueError, TypeError):
                     return JsonResponse({"status": 400, "messages": "Invalid quantity value!"})
-
                 # Find the product and variant
                 product = get_object_or_404(Product, id=product_id)
                 variant = Variants.objects.filter(product=product, size_id=size_id, color_id=color_id).first()
-
                 # Check if variant exists, and if not, check product stock
                 if not variant and product.in_stock_max <= 0:
                     return JsonResponse({"status": 400, "messages": "Product is out of stock!"})
-
                 max_stock = variant.quantity if variant else product.in_stock_max
-
                 # If the product already exists in the cart
                 existing_cart_item = Cart.objects.filter(user=request.user, product=product, variant=variant if variant else None).first()
-
                 if existing_cart_item:
                     # Check if the previous quantity + new quantity <= stock
                     new_quantity = existing_cart_item.quantity + quantity
                     if new_quantity <= 0:
                         return JsonResponse({"status": 400, "messages": "Quantity cannot be zero or negative!"})
-
                     if new_quantity <= max_stock:
                         existing_cart_item.quantity = new_quantity
                         existing_cart_item.save()
@@ -72,8 +66,10 @@ class AddToCart(LoginRequiredMixin, generic.View):
                         messages = "Product added to cart successfully!"
                     else:
                         return JsonResponse({"status": 400, "messages": f"Cannot add more than {max_stock} units!"})
+                # calculate cart count
+                cart_count = Cart.objects.filter(user=request.user).count()
 
-                return JsonResponse({'status': 200, 'messages': messages})
+                return JsonResponse({'status': 200, 'messages': messages, 'cart_count': cart_count})
             
             except ValueError as e:
                 return JsonResponse({'status': 400, 'messages': f"ValueError: {str(e)}"})
@@ -84,19 +80,21 @@ class AddToCart(LoginRequiredMixin, generic.View):
         
         return JsonResponse({'status': 400, 'messages': 'Invalid request'})
 
+
 @method_decorator(never_cache, name='dispatch')
 class CartView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
     def get(self, request):
+
         context = {
-                
         }
         return render(request, 'cart/cart.html', context)
-     
+
+from django.db.models import Sum
+
 @method_decorator(never_cache, name='dispatch')
 class QuantityIncDec(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
-    
     def post(self, request):
         if request.method == "POST":
             try:
@@ -145,21 +143,26 @@ class QuantityIncDec(LoginRequiredMixin, generic.View):
                 cart_total = sum(item.quantity * item.single_price for item in cart_products)
                 finale_price = cart_total + 150  # Delivery charge 150
 
+                # **Cart Counter Update**
+                cart_count = cart_products.aggregate(Sum('quantity'))['quantity__sum'] or 0
+
                 return JsonResponse({
                     "status": 200,
                     "messages": f"Quantity updated successfully! {cart_product.quantity}",
                     "quantity": cart_product.quantity,
                     "cart_total": cart_total,
-                    "qty_total_price": cart_product.single_price * cart_product.quantity,  # To keep the variant price
+                    "qty_total_price": cart_product.single_price * cart_product.quantity,  
                     "sub_total": cart_total,
-                    "finale_price": finale_price,  # Final price with delivery charge
-                    "id": cart_item_id
+                    "finale_price": finale_price, 
+                    "id": cart_item_id,
+                    "cart_count": cart_count 
                 })
 
             except Exception as e:
                 return JsonResponse({"status": 400, "messages": str(e)})
 
         return JsonResponse({"status": 400, "messages": "Invalid request"})
+
 
 @method_decorator(never_cache, name='dispatch')
 class RemoveToCart(LoginRequiredMixin, generic.View):
@@ -190,6 +193,9 @@ class RemoveToCart(LoginRequiredMixin, generic.View):
                 cart_total = sum(item.quantity * item.single_price for item in cart_products)
                 finale_price = cart_total + 150 
 
+                # **Cart Counter Update**
+                cart_count = cart_products.aggregate(Sum('quantity'))['quantity__sum'] or 0
+
                 return JsonResponse({
                     "status": 200,
                     "messages": "Product removed successfully!",
@@ -197,7 +203,8 @@ class RemoveToCart(LoginRequiredMixin, generic.View):
                     "qty_total_price": qty_total_price,  
                     "sub_total": cart_total,  
                     "finale_price": finale_price, 
-                    "id": cart_item_id
+                    "id": cart_item_id,
+                    "cart_count": cart_count  # **Newly Added**
                 })
 
             except Exception as e:
