@@ -22,8 +22,17 @@ from cart.models import (
 )
 
 # Create your views here.
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
+from stories.models import Product, Variants, Cart
+import json
+
 @method_decorator(never_cache, name='dispatch') 
-class AddToCart(LoginRequiredMixin, generic.View):
+class AddToCart(LoginRequiredMixin, View):
     login_url = reverse_lazy('sign') 
 
     def post(self, request):
@@ -44,15 +53,9 @@ class AddToCart(LoginRequiredMixin, generic.View):
                 product = get_object_or_404(Product, id=product_id)
 
                 # Find the variant based on size and color if provided
-                
-                if size_id and color_id:
-                    variants = Variants.objects.filter(product=product, size_id=size_id, color_id=color_id)
-                    if variants.exists():  
-                        variant = variants[0]  # Get the first variant safely
-                    else:
-                        variant = None
-                else:
-                    variant = None
+                variant_qs = Variants.objects.filter(product=product, size_id=size_id, color_id=color_id) if size_id and color_id else []
+                variants = list(variant_qs)  
+                variant = variants[0] if variants else None  # IndexError Igno
 
                 # Check stock availability
                 max_stock = variant.quantity if variant else product.in_stock_max
@@ -60,11 +63,12 @@ class AddToCart(LoginRequiredMixin, generic.View):
                     return JsonResponse({"status": 400, "messages": "Product is out of stock!"})
 
                 # Check if the product already exists in the cart
-                cart_items = Cart.objects.filter(user=request.user, product=product, variant=variant)
-                
-                if cart_items.exists():
+                cart_qs = Cart.objects.filter(user=request.user, product=product, variant=variant)
+                cart_items = list(cart_qs)  
+                existing_cart_item = cart_items[0] if cart_items else None  # IndexError Ignored
+
+                if existing_cart_item:
                     # If product exists in cart, update quantity
-                    existing_cart_item = cart_items[0]
                     new_quantity = existing_cart_item.quantity + quantity
                     if new_quantity <= max_stock:
                         existing_cart_item.quantity = new_quantity
