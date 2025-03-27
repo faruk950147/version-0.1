@@ -214,6 +214,8 @@
 				success: function(res){
 					if(res.status == 200){
 						alertify.success(res.messages);
+						// Update the coupon code in the input field
+						console.log(res);
 					}
 					else if (res.status == 400) {
 						alertify.error(res.messages);

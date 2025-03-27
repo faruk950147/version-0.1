@@ -20,10 +20,6 @@ class Coupon(models.Model):
     def __str__(self):
         return self.coupon_code
 
-    def is_valid(self, total_amount):
-        """Check if the coupon is valid based on expiration and minimum amount."""
-        return not self.is_expired and total_amount >= self.minimum_amount
-
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -48,17 +44,14 @@ class Cart(models.Model):
     @property
     def discount_price(self):
         """Calculate price after coupon discount is applied."""
-        if self.coupon and hasattr(self.coupon, "is_valid") and self.coupon.is_valid(self.qty_total_price):
-            # Ensure all values involved in the calculation are Decimal
-            discount = (self.coupon.coupon_discount / Decimal('100')) * self.qty_total_price
-            return self.qty_total_price - discount
-        return self.qty_total_price
+ 
+        return 
 
     @property
     def total(self):
         """Calculate the total price of all products in the user's cart."""
         carts = Cart.objects.filter(user=self.user)
-        total = sum(cart.discount_price for cart in carts)  # Sum using a Python generator expression
+        total = sum(cart.qty_total_price for cart in carts)  # Sum using a Python generator expression
         return total
     
     def __str__(self):
