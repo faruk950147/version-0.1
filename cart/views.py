@@ -106,33 +106,38 @@ class CartView(LoginRequiredMixin, generic.View):
                 data = json.loads(request.body)
                 coupon_code = data.get("coupon_code", "").strip()
 
-                # Check if coupon code exists and is not expired using filter() and exists()
-                coupon_qs = Coupon.objects.filter(coupon_code=coupon_code, is_expired=False)
-                if coupon_qs.exists():  # Check if coupon exists
-                    coupon = coupon_qs[0]  # Get the first valid coupon
-                else:
+                # Check if coupon exists
+                coupon_qs = Coupon.objects.filter(coupon_code=coupon_code)
+                if not coupon_qs.exists():
                     return JsonResponse({'status': 400, 'messages': 'Invalid coupon code.'})
-                
+
+                # Get the first coupon safely 
+                coupon = list(coupon_qs)[0]  # Safe indexing, no IndexError
+
+                # Check if coupon is expired
+                if coupon.is_expired:
+                    return JsonResponse({'status': 400, 'messages': 'This coupon has expired.'})
+
+                # Check if user already used this coupon
+                if Cart.objects.filter(user=request.user, coupon=coupon).exists():
+                    return JsonResponse({'status': 400, 'messages': 'This coupon has already been used.'})
+
                 # User's cart products
                 cart_products = Cart.objects.filter(user=request.user)
 
                 # Total order amount
                 total_amount = sum(cart.discount_price for cart in cart_products)
-                
+
                 # Check if coupon is valid for the total amount
                 if coupon.is_valid(total_amount):
                     # Apply coupon to all cart products
                     cart_products.update(coupon=coupon) 
 
-                    # Calculate discounted total using discount_price property
+                    # Calculate discounted total
                     discounted_total = sum(cart.discount_price for cart in cart_products)
-                    discount_amount = total_amount - discounted_total  # Calculate actual discount amount
-                    
-                    # Ensure discount_amount is not negative
-                    if discount_amount < 0:
-                        discount_amount = 0 
+                    discount_amount = total_amount - discounted_total  
 
-                    # Format decimal to 2 places for consistent output
+                    # Format decimal to 2 places
                     discount_amount = str(Decimal(discount_amount).quantize(Decimal('0.01')))
                     discounted_total = str(Decimal(discounted_total).quantize(Decimal('0.01')))
 
@@ -145,7 +150,6 @@ class CartView(LoginRequiredMixin, generic.View):
                 return JsonResponse({'status': 400, 'messages': 'Invalid data format.'})
 
         return JsonResponse({'status': 400, 'messages': 'Invalid request'})
-
 @method_decorator(never_cache, name='dispatch')
 class QuantityIncDec(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
