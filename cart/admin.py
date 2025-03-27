@@ -9,6 +9,7 @@ class CouponAdmin(ModelAdmin):
     list_display = ['id', 'coupon_code', 'coupon_discount', 'is_expired', 'minimum_amount']
     search_fields = ['coupon_code']
     list_filter = ['is_expired']
+    list_editable = ['is_expired']
 admin.site.register(Coupon, CouponAdmin)
 
 class CartAdmin(ModelAdmin):
@@ -16,5 +17,6 @@ class CartAdmin(ModelAdmin):
     search_fields = ['user__username', 'product__title']
     list_filter = ['user', 'product', 'quantity']
     readonly_fields = ['single_price', 'qty_total_price', 'discount_price', 'total']
+    list_editable = ['coupon']
 admin.site.register(Cart, CartAdmin)
 
