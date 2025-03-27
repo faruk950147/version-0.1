@@ -236,6 +236,7 @@
 							alertify.success(res.messages)
 							$('.cart-count').text(res.cart_count)
 							$('.cart-total-price').text(res.cart_total)
+							$('.shopping-cart-list').load(location.href + ' .shopping-cart-list');
 						}
 						else if(res.status == 400){
 							alertify.error(res.messages)
