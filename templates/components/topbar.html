@@ -126,21 +126,23 @@
 							<div class="custom-menu">
 								<div id="shopping-cart">
 									<div class="shopping-cart-list ajax-mini-cart-list">
-										{% for cart_products in cart_products %}
-										<div class="product product-widget">
-											<div class="product-thumb">
-												{% if cart_products.product.products_images.first.image %}
-												<img src="{{cart_products.product.products_images.first.image.url}}" alt="">
-												{% else %}
-												<img src="{% static "img/no-image.jpg" %}" alt="">
-												{% endif %}
+										{% for cart_product in cart_products %}
+											<div class="product product-widget">
+												<div class="product-thumb">
+													{% if cart_product.product.products_images.first.image %}
+													<img src="{{cart_product.product.products_images.first.image.url}}" alt="">
+													{% else %}
+													<img src="{% static "img/no-image.jpg" %}" alt="">
+													{% endif %}
+												</div>
+												<div class="product-body">
+													<h3 class="product-price">$ {{cart_product.qty_total_price}} <span class="qty">x {{cart_product.quantity}}</span></h3>
+													<h2 class="product-name"><a href="#">{{cart_product.product.title}}</a></h2>
+												</div>
+												<button class="cancel-btn btn-remove" data-id="{{ cart_product.id }}">
+													<i class="fa fa-trash"></i>
+												</button>
 											</div>
-											<div class="product-body">
-												<h3 class="product-price">$ {{cart_products.qty_total_price}} <span class="qty">x {{cart_products.quantity}}</span></h3>
-												<h2 class="product-name"><a href="#">{{cart_products.product.title}}</a></h2>
-											</div>
-											<button class="cancel-btn"><i class="fa fa-trash"></i></button>
-										</div>
 										{% endfor %}
 									</div>
 									<div class="shopping-cart-btns">

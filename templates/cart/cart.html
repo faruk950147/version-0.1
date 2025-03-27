@@ -14,7 +14,7 @@
 							<div class="section-title text-center">
 								<h3 class="title text-center">Carts Review</h3>
 							</div>
-							<table class="shopping-cart-table table">
+							<table class="shopping-cart-table table ajax-cart-list">
 								<thead>
 									<tr>
 										<th>Product</th>
@@ -26,44 +26,50 @@
 									</tr>
 								</thead>
 								<tbody>
-									{% for cart_products in cart_products %}
+									{% for cart_product in cart_products %}
 									<tr>
 										<td class="thumb">
-											{% if cart_products.product.products_images.first.image %}
-											<img src="{{cart_products.product.products_images.first.image.url}}" alt="">
+											{% if cart_product.product.products_images.first.image %}
+											<img src="{{cart_product.product.products_images.first.image.url}}" alt="">
 											{% else %}
 											<img src="{% static "img/no-image.jpg" %}" alt="">
 											{% endif %}
 										</td>
 										<td class="details">
-											<a href="#">{{cart_products.product.title}}</a>
+											<a href="#">{{cart_product.product.title}}</a>
 											<ul>
-												<li><span>Size: {% if cart_products.variant.size %}{{cart_products.variant.size}}  {% else %} No Size {% endif %} </span></li>
-												<li><span>Color: {% if cart_products.variant.color %}{{cart_products.variant.color}} {% else %} No Color {% endif %}</span></li>
+												<li><span>Size: {% if cart_product.variant.size %}{{cart_product.variant.size}}  {% else %} No Size {% endif %} </span></li>
+												<li><span>Color: {% if cart_product.variant.color %}{{cart_product.variant.color}} {% else %} No Color {% endif %}</span></li>
 											</ul>
 										</td>
 										<td class="price text-center">
-											<strong>$ {{cart_products.product.price}}</strong>
+											<strong>
+												{% if cart_product.product.product_variants.exists %}
+												$ {{cart_product.product.product_variants.first.price}}
+												{% else %}
+												$ {{cart_product.product.price}}
+												{% endif %}
+											</strong>
 											<br>
-											{% if cart_products.product.old_price %}
-											<del class="font-weak"><small>$ {{cart_products.product.old_price}}</small></del>
+											{% if cart_product.product.old_price %}
+											<del class="font-weak"><small>$ {{cart_product.product.old_price}}</small></del>
 											{% endif %}
 										</td>
 										<td class="qty text-center">
-											<button class="btn btn-sm btn-outline-secondary decrease-qty" data-id="{{ cart_products.id }}">-</button>
-											<span class="quantity" data-id="{{ cart_products.id }}"> {{ cart_products.quantity }} </span>
-											<button class="btn btn-sm btn-outline-secondary increase-qty" data-id="{{ cart_products.id }}">+</button>
+											<button class="btn btn-sm btn-outline-secondary decrease-qty" data-id="{{ cart_product.id }}">-</button>
+											<span class="quantity" data-id="{{ cart_product.id }}"> {{ cart_product.quantity }} </span>
+											<button class="btn btn-sm btn-outline-secondary increase-qty" data-id="{{ cart_product.id }}">+</button>
 										</td>
 
 										<td class="total text-center">
-											<strong class="primary-color" data-id="{{ cart_products.id }}">
-												$ {{ cart_products.qty_total_price }}
+											<strong class="primary-color" data-id="{{ cart_product.id }}">
+												$ {{ cart_product.qty_total_price }}
 											</strong>
 										</td>
 										
 										<!-- Remove Item Button -->
 										<td class="text-right">
-											<button class="main-btn icon-btn btn-remove" data-id="{{ cart_products.id }}">
+											<button class="main-btn icon-btn btn-remove" data-id="{{ cart_product.id }}">
 												<i class="fa fa-trash"></i>
 											</button>
 										</td>
@@ -143,7 +149,11 @@
 						$(".cart-total-price").text("$ " + res.cart_total);
 						$(".sub-total").text("$ " + res.sub_total);
 						$(".finale-price").text("$ " + res.finale_price);
-						$('.shopping-cart-table').load(location.href + ' .shopping-cart-table');
+
+						// Update mini cart
+						$('.ajax-mini-cart-list').load(location.href + ' .ajax-mini-cart-list');
+						// Update cart list
+						$('.ajax-cart-list').load(location.href + ' .ajax-cart-list')
 						alertify.success(res.messages)	
 					}
 					else if (res.status == 400) {
@@ -186,7 +196,11 @@
 						$(".sub-total").text("$ " + res.sub_total);
 						$(".finale-price").text("$ " + res.finale_price);
 						$(".cart-count").text(res.cart_count);
-						$('.shopping-cart-table').load(location.href + ' .shopping-cart-table');
+
+						// Update mini cart
+						$('.ajax-mini-cart-list').load(location.href + ' .ajax-mini-cart-list');
+						// Update cart list
+						$('.ajax-cart-list').load(location.href + ' .ajax-cart-list');
 						alertify.success(res.messages);
 
 					}
@@ -217,7 +231,7 @@
 				success: function(res){
 					if(res.status == 200){
 						$('.cart-total-price').text("$ " + res.total_price_after_discount);
-						$('.shopping-cart-table').load(location.href + ' .shopping-cart-table');
+						//$('.ajax-cart-list').load(location.href + ' .ajax-cart-list');
 						alertify.success(res.messages);
 						// Update the coupon code in the input field
 						console.log(res);
