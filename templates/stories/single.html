@@ -233,10 +233,11 @@
 					dataType: "json",
 					success: function(res) {
 						if(res.status == 200){
-							alertify.success(res.messages)
+							console.log(res)
 							$('.cart-count').text(res.cart_count)
 							$('.cart-total-price').text(res.cart_total)
-							$('.shopping-cart-list').load(location.href + ' .shopping-cart-list');
+							$('.ajax-cart-list').load(location.href + ' .ajax-cart-list');
+							alertify.success(res.messages)
 						}
 						else if(res.status == 400){
 							alertify.error(res.messages)
