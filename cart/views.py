@@ -139,7 +139,7 @@ class CartView(LoginRequiredMixin, generic.View):
                     return JsonResponse({'status': 200, 'messages': 'Coupon applied successfully.', 'discount_amount': discount_amount, 'total_price_after_discount': discounted_total})
 
                 else:
-                    return JsonResponse({'status': 400, 'messages': 'Coupon cannot be applied. Minimum amount not reached.'})
+                    return JsonResponse({'status': 400, 'messages': f'Coupon cannot be applied. Minimum amount not reached {coupon.minimum_amount}.'})
 
             except json.JSONDecodeError:
                 return JsonResponse({'status': 400, 'messages': 'Invalid data format.'})
