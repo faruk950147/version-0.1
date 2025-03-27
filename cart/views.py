@@ -146,7 +146,6 @@ class CartView(LoginRequiredMixin, generic.View):
 
         return JsonResponse({'status': 400, 'messages': 'Invalid request'})
 
-
 @method_decorator(never_cache, name='dispatch')
 class QuantityIncDec(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
