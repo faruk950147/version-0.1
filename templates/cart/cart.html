@@ -143,6 +143,7 @@
 						$(".cart-total-price").text("$ " + res.cart_total);
 						$(".sub-total").text("$ " + res.sub_total);
 						$(".finale-price").text("$ " + res.finale_price);
+						$('.shopping-cart-table').load(location.href + ' .shopping-cart-table');
 						alertify.success(res.messages)	
 					}
 					else if (res.status == 400) {
@@ -185,7 +186,9 @@
 						$(".sub-total").text("$ " + res.sub_total);
 						$(".finale-price").text("$ " + res.finale_price);
 						$(".cart-count").text(res.cart_count);
+						$('.shopping-cart-table').load(location.href + ' .shopping-cart-table');
 						alertify.success(res.messages);
+
 					}
 					else if (res.status == 400) {
 						alertify.error(res.messages);
@@ -213,6 +216,8 @@
 				dataType: "json",
 				success: function(res){
 					if(res.status == 200){
+						$('.cart-total-price').text("$ " + res.total_price_after_discount);
+						$('.shopping-cart-table').load(location.href + ' .shopping-cart-table');
 						alertify.success(res.messages);
 						// Update the coupon code in the input field
 						console.log(res);

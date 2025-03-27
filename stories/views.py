@@ -180,7 +180,6 @@ class GetColorsBySize(generic.View):
 
         return JsonResponse({'status': 404, 'messages': 'No variants available'})
 
-
 @method_decorator(never_cache, name='dispatch')
 class ReviewsView(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign')
