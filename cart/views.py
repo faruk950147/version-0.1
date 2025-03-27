@@ -112,8 +112,34 @@ class CartView(LoginRequiredMixin, generic.View):
                     coupon = coupon_qs[0]  # Get the first valid coupon
                 else:
                     return JsonResponse({'status': 400, 'messages': 'Invalid coupon code.'})
+                
+                # User's cart products
+                cart_products = Cart.objects.filter(user=request.user)
 
-  
+                # Total order amount
+                total_amount = sum(cart.discount_price for cart in cart_products)
+                
+                # Check if coupon is valid for the total amount
+                if coupon.is_valid(total_amount):
+                    # Apply coupon to all cart products
+                    cart_products.update(coupon=coupon) 
+
+                    # Calculate discounted total using discount_price property
+                    discounted_total = sum(cart.discount_price for cart in cart_products)
+                    discount_amount = total_amount - discounted_total  # Calculate actual discount amount
+                    
+                    # Ensure discount_amount is not negative
+                    if discount_amount < 0:
+                        discount_amount = 0 
+
+                    # Format decimal to 2 places for consistent output
+                    discount_amount = str(Decimal(discount_amount).quantize(Decimal('0.01')))
+                    discounted_total = str(Decimal(discounted_total).quantize(Decimal('0.01')))
+
+                    return JsonResponse({'status': 200, 'messages': 'Coupon applied successfully.', 'discount_amount': discount_amount, 'total_price_after_discount': discounted_total})
+
+                else:
+                    return JsonResponse({'status': 400, 'messages': 'Coupon cannot be applied. Minimum amount not reached.'})
 
             except json.JSONDecodeError:
                 return JsonResponse({'status': 400, 'messages': 'Invalid data format.'})
