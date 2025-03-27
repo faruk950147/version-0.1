@@ -121,7 +121,7 @@
 								</div>
 								<strong class="text-uppercase">My Cart:</strong>
 								<br>
-								<span class="cart-total-price">$ {{qty_total_price}}</span>
+								<span class="text-uppercase cart-total-price">$ {{qty_total_price}}</span>
 							</a>
 							<div class="custom-menu">
 								<div id="shopping-cart">
@@ -147,7 +147,7 @@
 									</div>
 									<div class="shopping-cart-btns">
 										<a href="{% url "cartview" %}" class="main-btn">View Cart <i class="fa fa-arrow-circle-right"></i></a>
-										<a href="" class="main-btn">Checkout <i class="fa fa-arrow-circle-right"></i></a>
+										<a href="{% url "checkout" %}" class="main-btn">Checkout <i class="fa fa-arrow-circle-right"></i></a>
 									</div>
 								</div>
 							</div>
