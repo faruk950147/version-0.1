@@ -231,10 +231,12 @@
 				success: function(res){
 					if(res.status == 200){
 						$('.cart-total-price').text("$ " + res.total_price_after_discount);
-						//$('.ajax-cart-list').load(location.href + ' .ajax-cart-list');
+
+						// Update mini cart
+						$('.ajax-mini-cart-list').load(location.href + ' .ajax-mini-cart-list');	
+						// Update cart list
+						$('.ajax-cart-list').load(location.href + ' .ajax-cart-list');
 						alertify.success(res.messages);
-						// Update the coupon code in the input field
-						console.log(res);
 					}
 					else if (res.status == 400) {
 						alertify.error(res.messages);
