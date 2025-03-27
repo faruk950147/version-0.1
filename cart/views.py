@@ -21,18 +21,8 @@ from cart.models import (
     Cart, Coupon
 )
 
-# Create your views here.
-from django.utils.decorators import method_decorator
-from django.views import View
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
-from stories.models import Product, Variants, Cart
-import json
-
 @method_decorator(never_cache, name='dispatch') 
-class AddToCart(LoginRequiredMixin, View):
+class AddToCart(LoginRequiredMixin, generic.View):
     login_url = reverse_lazy('sign') 
 
     def post(self, request):
