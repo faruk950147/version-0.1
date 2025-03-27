@@ -221,33 +221,34 @@
 				let csrfmiddlewaretoken = $('#addToCartForm input[name=csrfmiddlewaretoken]').val();
 				let product_id = $("#product_id").val();
 
-
-				$.ajax({
-					url: "{% url 'addtocart' %}",
-					headers: {
-						"X-CSRFToken": csrfmiddlewaretoken  // CSRF token passing
-					},
-					method: "POST",
-					data: JSON.stringify({'product_id': product_id, 'size_id': size_id, 'color_id': color_id, 'quantity': quantity}),
-					contentType: "application/json",
-					dataType: "json",
-					success: function(res) {
-						if(res.status == 200){
-							console.log(res)
-							$('.cart-count').text(res.cart_count)
-							$('.cart-total-price').text(res.cart_total)
-							$('.ajax-cart-list').load(location.href + ' .ajax-cart-list');
-							alertify.success(res.messages)
-						}
-						else if(res.status == 400){
+				if(product_id.length > 0 && quantity.length > 0){
+					$.ajax({
+						url: "{% url 'addtocart' %}",
+						headers: {
+							"X-CSRFToken": csrfmiddlewaretoken  // CSRF token passing
+						},
+						method: "POST",
+						data: JSON.stringify({'product_id': product_id, 'size_id': size_id, 'color_id': color_id, 'quantity': quantity}),
+						contentType: "application/json",
+						dataType: "json",
+						success: function(res) {
+							if(res.status == 200){
+								alertify.success(res.messages)
+								$('.cart-count').text(res.cart_count)
+								$('.cart-total-price').text(res.cart_total)
+								$('.ajax-cart-list').load(location.href + ' .ajax-cart-list');
+							}
+							else if(res.status == 400){
+								alertify.error(res.messages)
+							}
+						},
+	
+						error: function(res) {
 							alertify.error(res.messages)
 						}
-					},
+					});
+				}
 
-					error: function(res) {
-						alertify.error(res.messages)
-					}
-				});
 			});
 		});
 	</script>
