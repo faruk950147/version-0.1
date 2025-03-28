@@ -53,7 +53,7 @@ class AddToCart(LoginRequiredMixin, generic.View):
                     return JsonResponse({"status": 400, "messages": "Product is out of stock!"})
 
                 # Check if the product already exists in the cart
-                cart_qs = Cart.objects.filter(user=request.user, product=product, variant=variant)
+                cart_qs = Cart.objects.filter(user_id=request.user.id, product=product, variant=variant)
                 cart_items = list(cart_qs)  
                 existing_cart_item = cart_items[0] if cart_items else None  # IndexError Ignored
 
@@ -69,13 +69,13 @@ class AddToCart(LoginRequiredMixin, generic.View):
                 else:
                     # If product is not in cart, add a new item
                     if quantity <= max_stock:
-                        Cart.objects.create(user=request.user, product=product, variant=variant, quantity=quantity)
+                        Cart.objects.create(user_id=request.user.id, product=product, variant=variant, quantity=quantity)
                         messages = "Product added to cart successfully!"
                     else:
                         return JsonResponse({"status": 400, "messages": f"Cannot add more than {max_stock} units!"})
 
                 # Update cart count and total price
-                cart_products = Cart.objects.filter(user=request.user)
+                cart_products = Cart.objects.filter(user_id=request.user.id)
                 cart_count = cart_products.count()
                 cart_total = sum(item.quantity * (item.single_price or 0) for item in cart_products)
 
@@ -113,11 +113,11 @@ class CartView(LoginRequiredMixin, generic.View):
                     return JsonResponse({'status': 400, 'messages': 'This coupon has expired.'})
 
                 # Check if user already used this coupon
-                if Cart.objects.filter(user=request.user, coupon=coupon).exists():
+                if Cart.objects.filter(user_id=request.user.id, coupon=coupon).exists():
                     return JsonResponse({'status': 400, 'messages': 'This coupon has already been used.'})
 
                 # User's cart products
-                cart_products = Cart.objects.filter(user=request.user)
+                cart_products = Cart.objects.filter(user_id=request.user.id)
 
                 # Total order amount
                 total_amount = sum(cart.discount_price for cart in cart_products)
@@ -161,7 +161,7 @@ class QuantityIncDec(LoginRequiredMixin, generic.View):
                     return JsonResponse({"status": 400, "messages": "Invalid action!"})
 
                 # Find the product in the cart
-                cart_product = get_object_or_404(Cart, id=cart_item_id, user=request.user)
+                cart_product = get_object_or_404(Cart, id=cart_item_id, user_id=request.user.id)
 
                 # Determine the maximum stock limit
                 max_stock = cart_product.variant.quantity if cart_product.variant else cart_product.product.in_stock_max
@@ -183,7 +183,7 @@ class QuantityIncDec(LoginRequiredMixin, generic.View):
                 cart_product.save()
 
                 # Load all cart items for the user
-                cart_products = Cart.objects.filter(user=request.user)
+                cart_products = Cart.objects.filter(user_id=request.user.id)
 
                 # Calculate the total price of the cart
                 cart_total = sum(item.quantity * item.single_price for item in cart_products)
@@ -223,7 +223,7 @@ class RemoveToCart(LoginRequiredMixin, generic.View):
                     return JsonResponse({"status": 400, "messages": "Cart item ID is missing!"})
 
                 # Find the cart item
-                cart_item = get_object_or_404(Cart, id=cart_item_id, user=request.user)
+                cart_item = get_object_or_404(Cart, id=cart_item_id, user_id=request.user.id)
 
                 # Calculate the price of the product (including variant price)
                 qty_total_price = cart_item.qty_total_price  # Price of the item that was removed
@@ -232,7 +232,7 @@ class RemoveToCart(LoginRequiredMixin, generic.View):
                 cart_item.delete()
 
                 # Load all cart items for the user
-                cart_products = Cart.objects.filter(user=request.user)
+                cart_products = Cart.objects.filter(user_id=request.user.id)
 
                 # Calculate the total price of the cart
                 cart_total = sum(item.quantity * item.single_price for item in cart_products)
